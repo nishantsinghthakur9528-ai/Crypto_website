@@ -384,15 +384,22 @@
                         <!-- Address + Copy + QR Row -->
                         <div class="flex flex-col sm:flex-row items-center gap-3 bg-[#12161E] p-3 rounded-xl border border-white/5">
                             <!-- QR Code Box -->
-                            <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-xl bg-white p-1.5 flex items-center justify-center shrink-0 shadow-md">
-                                <img id="depositQrImg" src="" alt="Deposit QR Code" class="w-full h-full object-contain rounded">
+                            <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-xl bg-white p-1.5 flex items-center justify-center shrink-0 shadow-md relative overflow-hidden">
+                                <div id="depositQrPlaceholder" class="w-full h-full flex flex-col items-center justify-center text-gray-400 text-center select-none">
+                                    <svg class="w-8 h-8 text-gray-300 animate-pulse mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                                    </svg>
+                                    <span class="text-[9px] text-gray-400 font-mono leading-none">QR Code</span>
+                                </div>
+                                <img id="depositQrImg" src="" alt="Deposit QR Code" class="w-full h-full object-contain rounded hidden">
                             </div>
 
                             <div class="flex-1 min-w-0 w-full flex flex-col justify-between gap-2">
                                 <div>
                                     <span class="text-[10px] text-[#848E9C] uppercase font-mono block">Send USDT to this address:</span>
-                                    <div id="assignedDepositAddress" class="font-mono text-xs text-white font-bold break-all bg-black/50 p-2 rounded-lg border border-white/10 mt-1 select-all">
-                                        Loading address...
+                                    <div id="assignedDepositAddress" class="font-mono text-xs text-white font-bold break-all bg-black/50 p-2 rounded-lg border border-white/10 mt-1 select-all flex items-center gap-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-[#0ECB81] animate-ping"></span>
+                                        <span>Generating address...</span>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2">

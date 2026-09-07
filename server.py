@@ -110,6 +110,37 @@ NETWORK_ADDRESSES = {
     }
 }
 
+DEFAULT_BEP20_VAULTS = [
+    "0x6BdC0219822A3202518230632EE5DC9d71C9b776",
+    "0x344fcCbb9A30Bef9e9622a3Ea8F3E57BA99b9a4e",
+    "0x6752c97D672B3b4A63640f871081FdEd8F1BfAB4",
+    "0x9214f629ed61E27Ba149823bA8a803701aDf05c6",
+    "0x544880b87703999aB90532ed194Bcaf31c5309a0",
+    "0x86A5Ee2b09C291583EcDe7aA322fFc44c72eBC7A",
+    "0x912e32B01090386D0cA936bDebEF07dA046aE324",
+    "0x14eA3b279Df7c6c9c623D31E645D19DE9Ef57984",
+    "0xD1f50220EAa3BF102cbf3b97ED77b14F494140a4",
+    "0xb6f722D631c33ac90b9c99c7243AD5bE6513D33B",
+    "0x6EEd9520ADe80E514CB2264c7C40EE0f5Cfbbcdb",
+    "0xA1762Dc6d9Db06310f44b0CaeCCDB5afD52208d0",
+    "0x3a7B1eAD0DB83144Dd02A11745d868A7dC43Cf3e",
+    "0xCCa448D5334Ed24cAf4b6faA3fb26b1F0Ab2b7F1",
+    "0x1C8BBE2F51ef72AD571eD7FA67c237F8263AD91C"
+]
+
+DEFAULT_TRC20_VAULTS = [
+    "TBLVoZkfZrderqfv1oJxkQQFn7UeMV3yXo",
+    "TQo6GkcHcSF5JmsYvT5kqsifK9uozGpi2J",
+    "TG7GhxohTzLGnxh1vWGTNMDGWh8Vr8bVK8",
+    "TSmVXYNJ4ijvjP8gkbTUVdxg8gtmasei9h",
+    "TQ7sF137NpDjN3fyFw9Sy4fgfzie18CNwv",
+    "TEMEromdZT22zDkijgA77JKucZFvMQPRbQ",
+    "THRk8PP1Qcn5WHhWoefYVWSY7YNte2QzDU",
+    "TPKKDrrLSoXhocgoR25ZhjGiC4dyi3DSqU",
+    "TFXKyWJbYyXvLZ49cDSs533vPdoLbKqMT6",
+    "TCiJ9znvnM1vy1AE1cowdECtUYPbj48GWt"
+]
+
 def get_random_deposit_address(network=None):
     """
     Selects a random deposit receiving address for the requested network
@@ -117,7 +148,8 @@ def get_random_deposit_address(network=None):
     Priority order:
     1. Environment variables (TRC20_WALLET_ADDRESSES, BEP20_WALLET_ADDRESSES, or WALLET_ADDRESSES_JSON)
     2. Local wallet_addresses.json file fallback
-    3. Primary configured network address fallback
+    3. wallet_addresses.example.json fallback
+    4. Built-in 15 rotating vault pools
     """
     net_key = (network or "USDT-BEP20").upper()
     if not net_key.startswith("USDT-"):
@@ -150,20 +182,21 @@ def get_random_deposit_address(network=None):
         print("[WALLET POOL] Error parsing addresses from environment:", e)
 
     # 2. Fallback to local file if present
-    try:
-        if os.path.exists(WALLET_ADDRESSES_FILE):
-            with open(WALLET_ADDRESSES_FILE, 'r', encoding='utf-8') as f:
-                pool = json.load(f)
-                net_pool = pool.get(net_key, [])
-                if net_pool and isinstance(net_pool, list) and len(net_pool) > 0:
-                    return random.choice(net_pool)
-    except Exception as e:
-        print("[WALLET POOL] Error reading addresses from file:", e)
+    for candidate_file in [WALLET_ADDRESSES_FILE, os.path.join(BASE_DIR, "wallet_addresses.example.json")]:
+        try:
+            if os.path.exists(candidate_file):
+                with open(candidate_file, 'r', encoding='utf-8') as f:
+                    pool = json.load(f)
+                    net_pool = pool.get(net_key, [])
+                    if net_pool and isinstance(net_pool, list) and len(net_pool) > 0:
+                        return random.choice(net_pool)
+        except Exception as e:
+            print(f"[WALLET POOL] Error reading addresses from {candidate_file}:", e)
     
-    # 3. Fallback to configured primary address
+    # 3. Fallback to built-in vault pools
     if net_key == "USDT-TRC20":
-        return "TBLVoZkfZrderqfv1oJxkQQFn7UeMV3yXo"
-    return "0x6BdC0219822A3202518230632EE5DC9d71C9b776"
+        return random.choice(DEFAULT_TRC20_VAULTS)
+    return random.choice(DEFAULT_BEP20_VAULTS)
 
 def hash_password(password: str, salt: str = None):
     if not salt:
@@ -632,20 +665,11 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             })
             return
 
-        # API: Assign Real Deposit Address from Pool (Gated by KYC)
+        # API: Assign Real Deposit Address from Pool
         elif path == '/api/deposit/assign-address':
             user = self.get_authenticated_user()
             if not user:
                 self._send_json(401, {"success": False, "error": "Please log in to obtain deposit address."})
-                return
-
-            if user.get("kycStatus") != "VERIFIED":
-                self._send_json(403, {
-                    "success": False,
-                    "error": "Identity Verification (KYC) Required. Please verify your identity to unlock deposits.",
-                    "kyc_required": True,
-                    "kyc_status": user.get("kycStatus", "UNVERIFIED")
-                })
                 return
 
             qs = urllib.parse.parse_qs(parsed.query)
@@ -668,6 +692,7 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             conn.commit()
             conn.close()
 
+            user_kyc = user.get("kycStatus", "UNVERIFIED")
             self._send_json(200, {
                 "success": True,
                 "deposit_id": dep_id,
@@ -675,8 +700,10 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "network": network,
                 "currency": "USDT",
                 "min_deposit": net_info["min_deposit"],
+                "confirmations_required": net_info["confirmations"],
                 "fee": net_info["fee"],
-                "confirmations": net_info["confirmations"]
+                "kyc_status": user_kyc,
+                "kyc_verified": (user_kyc == "VERIFIED")
             })
             return
 
@@ -1087,22 +1114,6 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self._send_json(401, {"success": False, "error": "Please log in to make a deposit."})
                 return
 
-            # Check KYC verification
-            conn_chk = get_db()
-            c_chk = conn_chk.cursor()
-            c_chk.execute("SELECT kyc_status FROM users WHERE id = ?", (user_id,))
-            u_row = c_chk.fetchone()
-            conn_chk.close()
-            kyc_status = u_row["kyc_status"] if u_row and u_row["kyc_status"] else "UNVERIFIED"
-            if kyc_status != "VERIFIED":
-                self._send_json(403, {
-                    "success": False,
-                    "error": "Identity Verification (KYC) Required. Please verify your identity to unlock deposits.",
-                    "kyc_required": True,
-                    "kyc_status": kyc_status
-                })
-                return
-
             network = payload.get("network", "USDT-TRC20")
             if not network.startswith("USDT-"):
                 network = f"USDT-{network}"
@@ -1139,21 +1150,13 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self._send_json(401, {"success": False, "error": "Please log in to deposit funds."})
                 return
 
-            # Check KYC verification
+            # Check KYC status for compliance metadata
             conn_chk = get_db()
             c_chk = conn_chk.cursor()
             c_chk.execute("SELECT kyc_status FROM users WHERE id = ?", (user_id,))
             u_row = c_chk.fetchone()
             conn_chk.close()
             kyc_status = u_row["kyc_status"] if u_row and u_row["kyc_status"] else "UNVERIFIED"
-            if kyc_status != "VERIFIED":
-                self._send_json(403, {
-                    "success": False,
-                    "error": "Identity Verification (KYC) Required. Please verify your identity to unlock deposits.",
-                    "kyc_required": True,
-                    "kyc_status": kyc_status
-                })
-                return
 
             amount = float(payload.get("amount", 0.0))
             network = payload.get("network", "USDT-BEP20")
@@ -1212,14 +1215,18 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                     explorer_url = f"https://tronscan.org/#/transaction/{txid}"
                 else:
                     explorer_url = f"TxID: {txid}"
+                
+                admin_origin = os.environ.get("RENDER_EXTERNAL_URL", "https://cryptotop.onrender.com").rstrip("/")
+                admin_link = f"{admin_origin}/admin.html?admin_key={ADMIN_SECRET_KEY}"
                 dep_alert = (
                     f"📥 *NEW DEPOSIT PROOF SUBMITTED*\n\n"
                     f"💰 *Amount:* `${amount:,.2f} USDT` ({network})\n"
                     f"👤 *Customer:* `{user_email}`\n"
+                    f"🛡️ *KYC Status:* `{kyc_status}`\n"
                     f"🏦 *Vault Address:* `{dep_address}`\n"
                     f"🔗 *TxID:* `{txid}`\n"
                     f"🔍 *Explorer:* {explorer_url}\n\n"
-                    f"👉 [Open Admin Desk](http://localhost:8080/admin.html?admin_key={ADMIN_SECRET_KEY})"
+                    f"👉 [Open Admin Desk]({admin_link})"
                 )
                 send_telegram_alert(dep_alert)
 

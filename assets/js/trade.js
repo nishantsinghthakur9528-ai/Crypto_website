@@ -94,9 +94,18 @@
     // =========================================================================
     // 2. Real Backend Wallet Balance Sync & Auth Session
     // =========================================================================
+    function getAuthToken() {
+        var token = localStorage.getItem('cryptotop_session_token');
+        if (!token) {
+            var match = document.cookie.match(/(?:^|;\s*)cryptotop_session_token=([^;]+)/);
+            if (match) token = match[1];
+        }
+        return token || '';
+    }
+
     function getAuthHeaders(extra) {
         var headers = Object.assign({ 'Content-Type': 'application/json' }, extra || {});
-        var token = localStorage.getItem('cryptotop_session_token');
+        var token = getAuthToken();
         if (token) {
             headers['Authorization'] = 'Bearer ' + token;
         }
@@ -297,35 +306,35 @@
             }
         }
 
-        // Deposit View Gating
+        // Deposit View Gating & Badging
         if (depositKycGate && depositFormWrap) {
+            depositFormWrap.classList.remove('opacity-40', 'pointer-events-none');
+            if (confirmDepositBtn) {
+                confirmDepositBtn.disabled = false;
+                confirmDepositBtn.innerText = 'Submit Payment Proof for Verification';
+            }
+
             if (currentKycStatus === 'VERIFIED') {
                 depositKycGate.classList.add('hidden');
-                depositFormWrap.classList.remove('opacity-40', 'pointer-events-none');
                 if (depositKycVerifiedPill) depositKycVerifiedPill.classList.remove('hidden');
-                if (confirmDepositBtn) {
-                    confirmDepositBtn.disabled = false;
-                    confirmDepositBtn.innerText = 'Submit Payment Proof for Verification';
-                }
-                if (!currentAssignedAddress) {
-                    fetchAssignedDepositAddress(selectedDepositNetwork);
-                }
-            } else {
+            } else if (currentKycStatus === 'PENDING_REVIEW') {
                 depositKycGate.classList.remove('hidden');
-                depositFormWrap.classList.add('opacity-40', 'pointer-events-none');
                 if (depositKycVerifiedPill) depositKycVerifiedPill.classList.add('hidden');
-                if (confirmDepositBtn) {
-                    confirmDepositBtn.disabled = true;
-                    confirmDepositBtn.innerText = currentKycStatus === 'PENDING_REVIEW' ? 'Verification In Review...' : 'Verification Required to Deposit';
-                }
+                if (depositKycGateTitle) depositKycGateTitle.innerText = 'Identity Verification Under Review ⏳';
+                if (depositKycGateDesc) depositKycGateDesc.innerText = 'Your verification application is currently under compliance review. Standard deposits and spot trading are fully active.';
+            } else if (currentKycStatus === 'REJECTED') {
+                depositKycGate.classList.remove('hidden');
+                if (depositKycVerifiedPill) depositKycVerifiedPill.classList.add('hidden');
+                if (depositKycGateTitle) depositKycGateTitle.innerText = 'Identity Verification Needs Attention';
+                if (depositKycGateDesc) depositKycGateDesc.innerText = 'Your previous verification was rejected: ' + ((ver && ver.rejection_reason) ? ver.rejection_reason : 'Please submit updated documents.') + ' You can continue depositing standard limits.';
+            } else {
+                // UNVERIFIED: Keep gateway open for standard deposits
+                depositKycGate.classList.add('hidden');
+                if (depositKycVerifiedPill) depositKycVerifiedPill.classList.add('hidden');
+            }
 
-                if (currentKycStatus === 'PENDING_REVIEW') {
-                    if (depositKycGateTitle) depositKycGateTitle.innerText = 'Identity Verification In Progress';
-                    if (depositKycGateDesc) depositKycGateDesc.innerText = 'Your verification application is currently under compliance review. Deposits will unlock automatically upon approval.';
-                } else if (currentKycStatus === 'REJECTED') {
-                    if (depositKycGateTitle) depositKycGateTitle.innerText = 'Identity Verification Rejected';
-                    if (depositKycGateDesc) depositKycGateDesc.innerText = 'Your previous submission was not approved: ' + ((ver && ver.rejection_reason) ? ver.rejection_reason : 'Please re-submit clear documents to proceed.');
-                }
+            if (!currentAssignedAddress) {
+                fetchAssignedDepositAddress(selectedDepositNetwork);
             }
         }
 
@@ -514,9 +523,7 @@
             if (tabDepositBtn) tabDepositBtn.className = 'flex-1 py-1.5 rounded-lg text-xs font-bold bg-[#0ECB81] text-[#080A0D] transition-all';
             if (depositView) depositView.style.display = 'flex';
             fetchKycStatus();
-            if (currentKycStatus === 'VERIFIED') {
-                fetchAssignedDepositAddress(selectedDepositNetwork);
-            }
+            fetchAssignedDepositAddress(selectedDepositNetwork);
         } else if (tab === 'withdraw') {
             if (tabWithdrawBtn) tabWithdrawBtn.className = 'flex-1 py-1.5 rounded-lg text-xs font-bold bg-[#0ECB81] text-[#080A0D] transition-all';
             if (withdrawView) withdrawView.style.display = 'flex';
@@ -579,38 +586,67 @@
     };
 
     function fetchAssignedDepositAddress(network) {
-        if (!getAuthToken()) return;
         selectedDepositNetwork = network || 'USDT-BEP20';
-
-        if (assignedDepositAddress) assignedDepositAddress.innerText = 'Generating address...';
         if (depositNetworkBadge) depositNetworkBadge.innerText = networkNameLabels[selectedDepositNetwork] || selectedDepositNetwork;
+
+        var token = getAuthToken();
+        var qrPlaceholder = document.getElementById('depositQrPlaceholder');
+
+        if (!token) {
+            if (assignedDepositAddress) {
+                assignedDepositAddress.innerHTML = '<a href="login.html" class="text-[#0ECB81] hover:underline font-bold flex items-center gap-1.5"><span>Please Log In to View Deposit Address</span><span>&rarr;</span></a>';
+            }
+            if (depositQrImg) depositQrImg.classList.add('hidden');
+            if (qrPlaceholder) {
+                qrPlaceholder.classList.remove('hidden');
+                qrPlaceholder.innerHTML = '<span class="text-[10px] text-gray-500 font-mono text-center">Login<br>Required</span>';
+            }
+            return;
+        }
+
+        if (assignedDepositAddress) {
+            assignedDepositAddress.innerHTML = '<span class="w-2 h-2 rounded-full bg-[#0ECB81] animate-ping inline-block mr-1.5"></span><span>Generating address...</span>';
+        }
+        if (depositQrImg) depositQrImg.classList.add('hidden');
+        if (qrPlaceholder) {
+            qrPlaceholder.classList.remove('hidden');
+            qrPlaceholder.innerHTML = '<svg class="w-8 h-8 text-gray-300 animate-pulse mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg><span class="text-[9px] text-gray-400 font-mono">Loading QR</span>';
+        }
 
         fetch('/api/deposit/assign-address?network=' + encodeURIComponent(selectedDepositNetwork), {
             headers: getAuthHeaders()
         })
         .then(function (res) { return res.json(); })
         .then(function (data) {
-            if (data.success) {
+            if (data.success && data.address) {
                 currentAssignedDepositId = data.deposit_id;
                 currentAssignedAddress = data.address;
 
                 if (assignedDepositAddress) assignedDepositAddress.innerText = data.address;
+
                 if (depositQrImg) {
                     var qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(data.address) + '&bgcolor=FFFFFF&color=0B0E11&margin=2';
+                    depositQrImg.onload = function () {
+                        if (qrPlaceholder) qrPlaceholder.classList.add('hidden');
+                        depositQrImg.classList.remove('hidden');
+                    };
+                    depositQrImg.onerror = function () {
+                        // Fallback secondary QR provider
+                        depositQrImg.src = 'https://quickchart.io/qr?text=' + encodeURIComponent(data.address) + '&size=180';
+                    };
                     depositQrImg.src = qrUrl;
                 }
+
                 var netInfo = networkDepositInfo[selectedDepositNetwork] || networkDepositInfo["USDT-BEP20"];
                 if (minDepDisplay && netInfo) minDepDisplay.innerText = netInfo.min;
             } else {
-                if (data.kyc_required) {
-                    if (assignedDepositAddress) assignedDepositAddress.innerText = 'KYC Verification Required';
-                } else {
-                    if (assignedDepositAddress) assignedDepositAddress.innerText = 'Error loading address';
+                if (assignedDepositAddress) {
+                    assignedDepositAddress.innerText = data.error || 'Error loading address';
                 }
             }
         })
         .catch(function () {
-            if (assignedDepositAddress) assignedDepositAddress.innerText = 'Failed to load address';
+            if (assignedDepositAddress) assignedDepositAddress.innerText = 'Failed to load address. Please retry.';
         });
     }
 
