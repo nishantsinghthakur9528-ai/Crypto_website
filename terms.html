@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Terms of Service - CryptoTop</title>
+    <meta name="theme-color" content="#0B0E11">
+    <link rel="icon" type="image/svg+xml" href="assets/images/app-icon.svg">
+    <link rel="apple-touch-icon" href="assets/images/app-icon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            main: '#0B0E11',
+                            secondary: '#181A20',
+                            tertiary: '#2B3139',
+                            green: '#0ECB81',
+                            greenDark: '#08c078',
+                            red: '#F6465D',
+                            blue: '#2962FF',
+                            text: '#EAECEF',
+                            muted: '#848E9C',
+                        }
+                    },
+                    fontFamily: {
+                        heading: ['Outfit', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Roboto Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body class="bg-[#0B0E11] text-[#EAECEF] min-h-screen flex flex-col font-sans">
+
+    <!-- Header -->
+    <div class="header-fixed-wrap">
+        <header>
+            <div class="container nav-inner mx-auto max-w-[1300px] px-4 md:px-5 flex flex-col md:flex-row justify-between items-center py-2.5 md:py-0 md:h-[70px] gap-2 md:gap-0">
+                <a href="index.html" class="nav-brand text-2xl font-extrabold font-heading text-white tracking-tight flex items-center gap-2">
+                    Crypto<span class="text-[#0ECB81]">Top</span>
+                </a>
+                <div class="nav-links flex items-center gap-3 md:gap-5 w-full md:w-auto overflow-x-auto justify-start md:justify-end pb-1 md:pb-0">
+                    <a href="index.html" class="text-sm md:text-[15px] font-medium text-[#EAECEF] hover:text-[#0ECB81] transition-colors">Home</a>
+                    <a href="trade.html" class="text-sm md:text-[15px] font-medium text-[#EAECEF] hover:text-[#0ECB81] transition-colors">Trade</a>
+                    
+                    <select id="langSwitch" class="bg-[#2B3139] text-[#EAECEF] border border-[#2B3139] rounded-lg px-2.5 py-1 text-xs md:text-sm cursor-pointer outline-none">
+                        <option value="en" selected>EN</option>
+                        <option value="ru">RU</option>
+                        <option value="uk">UK</option>
+                        <option value="es">ES</option>
+                        <option value="fa">FA</option>
+                    </select>
+
+                    <a href="#" id="navSupportBtn" class="text-sm md:text-[15px] font-medium text-[#EAECEF] hover:text-[#0ECB81] transition-colors">Support</a>
+                    <a href="login.html" class="text-sm md:text-[15px] font-medium text-[#EAECEF] hover:text-[#0ECB81] transition-colors">Log In</a>
+                    <a href="register.html" class="btn btn-primary nav-btn-signup text-sm md:text-[15px] font-semibold text-[#0ECB81]">Sign Up</a>
+                </div>
+            </div>
+        </header>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-1 container max-w-[860px] mx-auto px-5 py-14">
+        <h1 class="text-3xl md:text-5xl font-extrabold font-heading text-white mb-8 text-center">Terms of Service</h1>
+
+        <div class="glass-box p-6 md:p-12 text-[#848E9C] text-sm md:text-base leading-relaxed bg-[#181A20] border border-[#2B3139] rounded-2xl shadow-2xl space-y-8">
+            <div>
+                <h3 class="text-lg md:text-xl font-bold font-heading text-white mb-2">1. Acceptance of Terms</h3>
+                <p>By accessing and utilizing CryptoTop ("the Platform"), you agree to abide by and remain legally bound by the terms and provisions of this agreement. Furthermore, when using particular features, you will adhere to all posted guidelines and operating protocols applicable to such services.</p>
+            </div>
+
+            <div>
+                <h3 class="text-lg md:text-xl font-bold font-heading text-white mb-2">2. User Responsibilities</h3>
+                <ul class="list-disc pl-5 space-y-1.5 mt-2">
+                    <li>You must be of legal age (at least 18 years old) to execute spot trades or utilize algorithmic strategies.</li>
+                    <li>You are solely responsible for securing your login credentials and two-factor recovery keys.</li>
+                    <li>You agree to accept responsibility for all order instructions executed under your authentication token.</li>
+                    <li>The Platform shall not be utilized for unauthorized arbitrage attacks, market manipulation, or prohibited financial transactions.</li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 class="text-lg md:text-xl font-bold font-heading text-white mb-2">3. Trading Risks</h3>
+                <p>The market volatility of digital crypto assets involves substantial risk of capital loss. Traders should prudently evaluate whether holding digital currencies conforms with their financial capabilities and individual risk tolerance.</p>
+            </div>
+
+            <div>
+                <h3 class="text-lg md:text-xl font-bold font-heading text-white mb-2">4. KYC and AML Compliance</h3>
+                <p>CryptoTop enforces rigorous Anti-Money Laundering (AML) standards and Know Your Customer (KYC) procedures. Account activity, withdrawals, and limits may be conditional upon verification approval.</p>
+            </div>
+
+            <div>
+                <h3 class="text-lg md:text-xl font-bold font-heading text-white mb-2">5. Limitation of Liability</h3>
+                <p>The Platform and matching algorithms are provided on an "as is" and "as available" basis. The company disclaims liability for network latency, decentralized blockchain reorganizations, or third-party service interruptions.</p>
+            </div>
+
+            <div class="border-t border-[#2B3139] pt-6 text-xs text-[#848E9C]">
+                Last updated: September 06, 2026
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-[#181A20] py-6 border-t border-[#2B3139] text-center text-[#848E9C] text-xs">
+        <div class="container max-w-[1300px] mx-auto px-5 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>&copy; 2026 CryptoTop. All rights reserved.</div>
+            <div class="flex gap-5">
+                <a href="about.html" class="hover:text-[#0ECB81]">About Us</a>
+                <a href="terms.html" class="hover:text-[#0ECB81]">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating Support Chat Action Button (FAB) -->
+    <div id="csSupportFab" class="cs-support-fab" title="Support">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span>Support</span>
+    </div>
+
+    <!-- Support Chat Overlay Modal -->
+    <div id="csSupportOverlay" class="cs-support-overlay" aria-hidden="true">
+        <div class="cs-support-panel" role="dialog" aria-labelledby="csSupportTitle">
+            <div class="cs-support-header">
+                <div>
+                    <div id="csSupportTitle" class="text-base font-bold text-white flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#0ECB81] inline-block animate-pulse"></span>
+                        CryptoTop Support
+                    </div>
+                    <div class="text-xs text-[#848E9C] mt-1">We usually reply within a few minutes</div>
+                </div>
+                <button type="button" id="csSupportClose" class="text-2xl text-[#848E9C] hover:text-white transition-colors cursor-pointer leading-none" aria-label="Close">&times;</button>
+            </div>
+            <div id="csSupportMessages" class="cs-support-messages">
+                <div class="cs-support-hint">Legal or compliance question? We are here to help.</div>
+            </div>
+            <form id="csSupportForm" class="p-4 border-t border-[#2B3139] flex flex-col gap-2.5 bg-[#181A20]">
+                <textarea id="csSupportInput" class="w-full bg-[#2B3139] border border-white/10 rounded-lg text-white p-3 text-sm focus:outline-none focus:border-[#0ECB81] transition-colors resize-none" rows="2" maxlength="2000" placeholder="Type your message..." required></textarea>
+                <button type="submit" class="btn btn-primary w-full py-2.5 text-sm font-semibold">Send Message</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="assets/js/main.js"></script>
+</body>
+
+</html>

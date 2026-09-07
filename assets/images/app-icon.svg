@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#181A20"/>
+      <stop offset="100%" stop-color="#0B0E11"/>
+    </radialGradient>
+    <linearGradient id="cryptotopGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2AF598"/>
+      <stop offset="45%" stop-color="#0ECB81"/>
+      <stop offset="100%" stop-color="#08AEEA"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background rounded squircle -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)"/>
+  <rect width="508" height="508" x="2" y="2" rx="126" stroke="#2B3139" stroke-width="4"/>
+  
+  <!-- Outer Orbit -->
+  <circle cx="256" cy="256" r="165" stroke="#2B3139" stroke-width="4" stroke-dasharray="14 12" />
+  <circle cx="395" cy="175" r="18" fill="#0ECB81" filter="url(#glow)"/>
+  <circle cx="117" cy="337" r="11" fill="#2962FF" opacity="0.85"/>
+
+  <!-- CryptoTop Stylized Emblem -->
+  <g transform="translate(256 256)">
+    <!-- Central ambient glow -->
+    <circle r="75" fill="#0ECB81" opacity="0.22" filter="url(#glow)"/>
+    
+    <!-- Outer Arc of C -->
+    <path d="M 65 -75 C 20 -105, -75 -85, -95 -25 C -115 35, -85 95, -20 105 C 45 115, 80 75, 80 50 L 35 50 C 35 65, 15 80, -15 72 C -55 60, -65 15, -55 -25 C -45 -65, 10 -75, 45 -55 Z" 
+          fill="url(#cryptotopGrad)" />
+          
+    <!-- Futuristic Core Node -->
+    <polygon points="15,-15 55,-15 65,20 25,20" fill="url(#cryptotopGrad)" opacity="0.95" />
+    <circle cx="40" cy="2" r="7" fill="#0B0E11" />
+  </g>
+</svg>

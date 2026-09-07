@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>CryptoTop - Spot Trading Terminal</title>
+    <meta name="theme-color" content="#0B0E11">
+    <link rel="icon" type="image/svg+xml" href="assets/images/app-icon.svg">
+    <link rel="apple-touch-icon" href="assets/images/app-icon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            main: '#0B0E11',
+                            secondary: '#181A20',
+                            tertiary: '#2B3139',
+                            green: '#0ECB81',
+                            greenDark: '#08c078',
+                            red: '#F6465D',
+                            blue: '#2962FF',
+                            text: '#EAECEF',
+                            muted: '#848E9C',
+                        }
+                    },
+                    fontFamily: {
+                        heading: ['Outfit', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Roboto Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom Style System -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body class="bg-[#0B0E11] text-[#EAECEF] min-h-screen flex flex-col font-sans">
+
+    <!-- Header -->
+    <div class="header-fixed-wrap">
+        <header>
+            <div class="container nav-inner mx-auto max-w-[1440px] px-4 md:px-5 flex flex-col md:flex-row justify-between items-center py-2.5 md:py-0 md:h-[70px] gap-2 md:gap-0">
+                <a href="index.html" class="nav-brand text-2xl font-extrabold font-heading text-white tracking-tight flex items-center gap-2">
+                    Crypto<span class="text-[#0ECB81]">Top</span>
+                </a>
+                <div class="nav-links flex items-center gap-3 md:gap-5 w-full md:w-auto overflow-x-auto justify-start md:justify-end pb-1 md:pb-0">
+                    <a href="index.html" class="text-sm md:text-[15px] font-medium text-[#EAECEF] hover:text-[#0ECB81] transition-colors">Home</a>
+                    <a href="trade.html" class="text-sm md:text-[15px] font-semibold text-[#0ECB81]">Trade</a>
+                    
+                    <select id="langSwitch" class="bg-[#2B3139] text-[#EAECEF] border border-[#2B3139] rounded-lg px-2.5 py-1 text-xs md:text-sm cursor-pointer outline-none">
+                        <option value="en" selected>EN</option>
+                        <option value="ru">RU</option>
+                        <option value="uk">UK</option>
+                        <option value="es">ES</option>
+                        <option value="fa">FA</option>
+                    </select>
+                    <a href="#" id="navSupportBtn" class="text-sm md:text-[15px] font-medium text-[#EAECEF] hover:text-[#0ECB81] transition-colors">Support</a>
+                    <a href="login.html" class="text-sm md:text-[15px] font-medium text-[#EAECEF] hover:text-[#0ECB81] transition-colors">Log In</a>
+                    <a href="register.html" class="btn btn-primary nav-btn-signup text-sm md:text-[15px] font-semibold text-[#0ECB81] hover:text-[#32ffb0]">Sign Up</a>
+                </div>
+            </div>
+        </header>
+    </div>
+
+    <main class="flex-1 max-w-[1440px] w-full mx-auto p-3 md:p-5 flex flex-col gap-4">
+        <!-- Market Pair Header -->
+        <div class="bg-[#181A20] border border-[#2B3139] rounded-xl p-4 md:p-5 shadow-lg flex flex-col gap-3">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 id="activePairTitle" class="text-2xl md:text-3xl font-black font-heading text-white tracking-tight flex items-center gap-2">
+                        BTC<span class="text-[#848E9C] text-lg font-medium">/USDT</span>
+                        <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-[#0ECB81]/15 text-[#0ECB81] border border-[#0ECB81]/30">0% Maker Fee</span>
+                    </h2>
+                    <div class="text-xs text-[#848E9C] mt-0.5">Spot Orderbook · Ultra-Low Latency &lt; 15ms</div>
+                </div>
+                <div class="text-left md:text-right">
+                    <span class="text-[11px] uppercase tracking-wider text-[#848E9C] block">Mark Price</span>
+                    <div class="flex items-baseline justify-start md:justify-end gap-1.5">
+                        <span id="currentPrice" class="text-2xl md:text-3xl font-black text-[#0ECB81] font-mono">68,450.00</span>
+                        <span class="text-sm text-[#848E9C] font-semibold">USDT</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 24h Market Stats Ribbon -->
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-3 border-t border-white/[0.06] text-xs font-mono">
+                <div>
+                    <span class="text-[#848E9C] block text-[10px] uppercase font-sans">24h Change</span>
+                    <span id="stat24hChange" class="text-[#0ECB81] font-bold">+2.45%</span>
+                </div>
+                <div>
+                    <span class="text-[#848E9C] block text-[10px] uppercase font-sans">24h High</span>
+                    <span id="stat24hHigh" class="text-white font-bold">$69,120.00</span>
+                </div>
+                <div>
+                    <span class="text-[#848E9C] block text-[10px] uppercase font-sans">24h Low</span>
+                    <span id="stat24hLow" class="text-white font-bold">$66,980.00</span>
+                </div>
+                <div>
+                    <span class="text-[#848E9C] block text-[10px] uppercase font-sans">24h Volume (USDT)</span>
+                    <span id="stat24hVol" class="text-white font-bold">$1.24B</span>
+                </div>
+                <div>
+                    <span class="text-[#848E9C] block text-[10px] uppercase font-sans">Funding Rate / 8h</span>
+                    <span class="text-[#0ECB81] font-bold">+0.0100%</span>
+                </div>
+            </div>
+
+            <!-- Spot Pair Selectors -->
+            <div class="pair-links flex gap-2 overflow-x-auto pt-3 border-t border-[#2B3139] scrollbar-none">
+                <a href="#" data-pair="BTC_USDT" class="px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold border border-[#2B3139] bg-[#2B3139] text-white shrink-0">BTC/USDT</a>
+                <a href="#" data-pair="ETH_USDT" class="px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-medium border border-[#2B3139] text-[#848E9C] hover:bg-[#2B3139] hover:text-white shrink-0">ETH/USDT</a>
+                <a href="#" data-pair="SOL_USDT" class="px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-medium border border-[#2B3139] text-[#848E9C] hover:bg-[#2B3139] hover:text-white shrink-0">SOL/USDT</a>
+                <a href="#" data-pair="XRP_USDT" class="px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-medium border border-[#2B3139] text-[#848E9C] hover:bg-[#2B3139] hover:text-white shrink-0">XRP/USDT</a>
+                <a href="#" data-pair="ADA_USDT" class="px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-medium border border-[#2B3139] text-[#848E9C] hover:bg-[#2B3139] hover:text-white shrink-0">ADA/USDT</a>
+                <a href="#" data-pair="DOT_USDT" class="px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-medium border border-[#2B3139] text-[#848E9C] hover:bg-[#2B3139] hover:text-white shrink-0">DOT/USDT</a>
+                <a href="#" data-pair="MATIC_USDT" class="px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-medium border border-[#2B3139] text-[#848E9C] hover:bg-[#2B3139] hover:text-white shrink-0">MATIC/USDT</a>
+                <a href="#" data-pair="DOGE_USDT" class="px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-medium border border-[#2B3139] text-[#848E9C] hover:bg-[#2B3139] hover:text-white shrink-0">DOGE/USDT</a>
+                <a href="#" data-pair="LINK_USDT" class="px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-medium border border-[#2B3139] text-[#848E9C] hover:bg-[#2B3139] hover:text-white shrink-0">LINK/USDT</a>
+            </div>
+        </div>
+
+        <!-- Main Chart and Sidebar Workspace -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+            <!-- Left: TradingView Chart Terminal -->
+            <div class="lg:col-span-8 bg-[#181A20] border border-[#2B3139] rounded-xl overflow-hidden shadow-lg relative flex flex-col h-[480px]">
+                <!-- Chart Toolbar -->
+                <div class="flex justify-between items-center px-4 py-2.5 bg-[#14161b] border-b border-[#2B3139] z-10">
+                    <div class="flex items-center gap-1">
+                        <button type="button" class="chart-tf-btn text-xs px-2.5 py-1 rounded text-[#848E9C] hover:text-white transition-colors" data-tf="1m">1m</button>
+                        <button type="button" class="chart-tf-btn text-xs px-2.5 py-1 rounded text-[#848E9C] hover:text-white transition-colors" data-tf="5m">5m</button>
+                        <button type="button" class="chart-tf-btn chart-tf-btn--active bg-[#2B3139] text-white text-xs px-2.5 py-1 rounded font-semibold transition-colors" data-tf="15m">15m</button>
+                        <button type="button" class="chart-tf-btn text-xs px-2.5 py-1 rounded text-[#848E9C] hover:text-white transition-colors" data-tf="30m">30m</button>
+                        <button type="button" class="chart-tf-btn text-xs px-2.5 py-1 rounded text-[#848E9C] hover:text-white transition-colors" data-tf="1h">1h</button>
+                        <button type="button" class="chart-tf-btn text-xs px-2.5 py-1 rounded text-[#848E9C] hover:text-white transition-colors" data-tf="4h">4h</button>
+                    </div>
+                    <div class="text-xs text-[#848E9C] flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-[#0ECB81] inline-block animate-pulse"></span>
+                        TradingView Engine
+                    </div>
+                </div>
+
+                <!-- Spot Chart Canvas Container -->
+                <div id="spotChart" class="w-full flex-1 min-h-[400px]"></div>
+            </div>
+
+            <!-- Right: Orderbook & Order Form -->
+            <div class="lg:col-span-4 flex flex-col gap-4">
+                <!-- Order Book -->
+                <div class="bg-[#181A20] border border-[#2B3139] rounded-xl p-4 shadow-lg flex flex-col">
+                    <div class="flex justify-between items-center text-xs font-semibold uppercase text-[#848E9C] tracking-wider mb-2">
+                        <span>Order Book</span>
+                        <span>Price (USDT) / Amount</span>
+                    </div>
+
+                    <!-- Asks (Sells - Red) -->
+                    <div id="asksContainer" class="flex flex-col justify-end min-h-[110px] space-y-0.5"></div>
+
+                    <!-- Live Mid Price Bar -->
+                    <div id="obCurrentPrice" class="py-2.5 text-center text-lg font-bold font-mono my-1 border-y border-[#2B3139] text-[#0ECB81] tracking-wide">
+                        68,450.00
+                    </div>
+
+                    <!-- Bids (Buys - Green) -->
+                    <div id="bidsContainer" class="flex flex-col min-h-[110px] space-y-0.5"></div>
+                </div>
+
+                <!-- Wallet Balance Card -->
+                <div class="bg-[#181A20] border border-white/[0.08] rounded-xl p-4 shadow-lg flex items-center justify-between">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] text-[#848E9C] uppercase tracking-wider block font-medium">Spot Available</span>
+                            <span id="userLockedWrap" class="hidden text-[10px] text-amber-400 font-mono bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded"><span id="userLockedBalance">0.00</span> In Transit</span>
+                            <button type="button" id="headerKycBadge" class="text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-amber-500/10 text-amber-400 border border-amber-500/25 hover:border-amber-400 transition-colors flex items-center gap-1.5 cursor-pointer" title="Click to view KYC verification status">
+                                <span id="headerKycDot" class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                <span id="headerKycText">KYC: Unverified</span>
+                            </button>
+                        </div>
+                        <div class="text-lg font-black font-mono text-white flex items-center gap-1.5 mt-0.5">
+                            <span id="userWalletBalance">0.00</span>
+                            <span class="text-xs text-[#0ECB81] font-bold">USDT</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" id="btnOpenDeposit" class="px-3 py-1.5 rounded-lg bg-[#0ECB81] text-[#080A0D] font-bold text-xs hover:bg-[#00F59B] transition-all shadow-[0_0_12px_rgba(14,203,129,0.25)]">Deposit</button>
+                        <button type="button" id="btnOpenWithdraw" class="px-3 py-1.5 rounded-lg bg-white/10 text-white font-medium text-xs hover:bg-white/20 transition-all">Withdraw</button>
+                    </div>
+                </div>
+
+                <!-- Order Placement Form -->
+                <div class="bg-[#181A20] border border-[#2B3139] rounded-xl p-4 shadow-lg">
+                    <div class="flex gap-2 mb-4">
+                        <button type="button" id="btnBuyTab" class="btn btn-primary flex-1 py-2 text-sm font-semibold">Buy</button>
+                        <button type="button" id="btnSellTab" class="btn btn-hollow flex-1 py-2 text-sm font-semibold">Sell</button>
+                    </div>
+
+                    <div id="orderSuccessAlert" class="hidden mb-3 p-2.5 rounded-lg bg-[rgba(14,203,129,0.15)] border border-[rgba(14,203,129,0.3)] text-[#0ECB81] text-xs font-medium"></div>
+
+                    <form id="tradeForm" class="space-y-3">
+                        <div>
+                            <label class="block text-xs text-[#848E9C] mb-1">Order Price (USDT)</label>
+                            <input type="number" step="any" id="orderPrice" class="w-full bg-[#2B3139] border border-white/10 rounded-lg text-white px-3 py-2 text-sm font-mono focus:border-[#0ECB81] focus:outline-none" required>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-[#848E9C] mb-1">Amount</label>
+                            <input type="number" step="any" id="orderAmount" value="0.05" class="w-full bg-[#2B3139] border border-white/10 rounded-lg text-white px-3 py-2 text-sm font-mono focus:border-[#0ECB81] focus:outline-none" required>
+                        </div>
+
+                        <div class="grid grid-cols-4 gap-1.5 py-1">
+                            <button type="button" onclick="document.getElementById('orderAmount').value='0.025'" class="text-[11px] py-1 bg-[#2B3139] hover:bg-white/10 rounded text-[#848E9C] hover:text-white transition-colors">25%</button>
+                            <button type="button" onclick="document.getElementById('orderAmount').value='0.050'" class="text-[11px] py-1 bg-[#2B3139] hover:bg-white/10 rounded text-[#848E9C] hover:text-white transition-colors">50%</button>
+                            <button type="button" onclick="document.getElementById('orderAmount').value='0.075'" class="text-[11px] py-1 bg-[#2B3139] hover:bg-white/10 rounded text-[#848E9C] hover:text-white transition-colors">75%</button>
+                            <button type="button" onclick="document.getElementById('orderAmount').value='0.100'" class="text-[11px] py-1 bg-[#2B3139] hover:bg-white/10 rounded text-[#848E9C] hover:text-white transition-colors">100%</button>
+                        </div>
+
+                        <button type="submit" id="orderSubmitBtn" class="btn btn-primary w-full py-3 text-sm font-bold mt-2">
+                            Buy BTC
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Open Orders Section -->
+        <div class="bg-[#181A20] border border-[#2B3139] rounded-xl p-5 shadow-lg mt-2 mb-10">
+            <h3 class="text-base font-bold font-heading text-white mb-3">Open Orders & Activity</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left font-sans text-xs">
+                    <thead>
+                        <tr class="border-b border-[#2B3139] text-[#848E9C] uppercase text-[11px]">
+                            <th class="pb-2.5">Pair</th>
+                            <th class="pb-2.5">Side</th>
+                            <th class="pb-2.5">Price (USDT)</th>
+                            <th class="pb-2.5">Amount</th>
+                            <th class="pb-2.5">Time</th>
+                            <th class="pb-2.5 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="openOrdersBody">
+                        <!-- Dynamic orders appended here -->
+                    </tbody>
+                </table>
+                <p id="noOrdersNotice" class="text-center text-[#848E9C] py-8 text-xs">No open orders. Place a buy or sell order above to see live execution.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-[#181A20] py-6 border-t border-[#2B3139] text-center text-[#848E9C] text-xs md:text-sm">
+        <div class="container max-w-[1440px] mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>&copy; 2026 CryptoTop. All rights reserved.</div>
+            <div class="flex gap-5">
+                <a href="about.html" class="hover:text-[#0ECB81]">About Us</a>
+                <a href="terms.html" class="hover:text-[#0ECB81]">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating Support Chat Action Button (FAB) -->
+    <div id="csSupportFab" class="cs-support-fab" title="Support">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span>Support</span>
+    </div>
+
+    <!-- Support Chat Overlay Modal -->
+    <div id="csSupportOverlay" class="cs-support-overlay" aria-hidden="true">
+        <div class="cs-support-panel" role="dialog" aria-labelledby="csSupportTitle">
+            <div class="cs-support-header">
+                <div>
+                    <div id="csSupportTitle" class="text-base font-bold text-white flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#0ECB81] inline-block animate-pulse"></span>
+                        CryptoTop Support
+                    </div>
+                    <div class="text-xs text-[#848E9C] mt-1">We usually reply within a few minutes</div>
+                </div>
+                <button type="button" id="csSupportClose" class="text-2xl text-[#848E9C] hover:text-white transition-colors cursor-pointer leading-none" aria-label="Close">&times;</button>
+            </div>
+            
+            <div id="csSupportMessages" class="cs-support-messages">
+                <div class="cs-support-hint">Trading desk support is online 24/7. Ask any question.</div>
+            </div>
+
+            <form id="csSupportForm" class="p-4 border-t border-[#2B3139] flex flex-col gap-2.5 bg-[#181A20]">
+                <textarea id="csSupportInput" class="w-full bg-[#2B3139] border border-white/10 rounded-lg text-white p-3 text-sm focus:outline-none focus:border-[#0ECB81] transition-colors resize-none" rows="2" maxlength="2000" placeholder="Type your message..." required></textarea>
+                <button type="submit" class="btn btn-primary w-full py-2.5 text-sm font-semibold">Send Message</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- TradingView Lightweight Charts Library -->
+    <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+    <script src="assets/js/main.js"></script>
+    <!-- Toast Notification Container -->
+    <div id="cryptotopToastContainer" class="cryptotop-toast-container capitexa-toast-container"></div>
+
+    <!-- Deposit / Withdraw Modal Dialog -->
+    <div id="walletModalOverlay" class="cryptotop-modal-overlay capitexa-modal-overlay">
+        <div class="cryptotop-modal-card capitexa-modal-card p-6 relative max-w-[500px] w-full">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center pb-3 mb-4 border-b border-white/10">
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-[#0ECB81] animate-pulse"></div>
+                    <h3 id="walletModalTitle" class="text-base font-bold text-white font-heading">Spot Wallet Management</h3>
+                </div>
+                <button type="button" id="walletModalClose" class="text-2xl text-[#848E9C] hover:text-white transition-colors">&times;</button>
+            </div>
+
+            <!-- Modal Nav Tabs -->
+            <div class="flex gap-1.5 p-1 bg-black/40 rounded-xl mb-5 border border-white/5">
+                <button type="button" id="tabDepositBtn" class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-[#0ECB81] text-[#080A0D] transition-all">Deposit</button>
+                <button type="button" id="tabWithdrawBtn" class="flex-1 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all">Withdraw</button>
+                <button type="button" id="tabHistoryBtn" class="flex-1 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all">History</button>
+                <button type="button" id="tabKycBtn" class="flex-1 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all flex items-center justify-center gap-1.5">
+                    <span>KYC</span>
+                    <span id="kycTabBadge" class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                </button>
+            </div>
+            
+            <!-- 1. Deposit View -->
+            <div id="depositView" class="flex flex-col gap-4 text-xs">
+                <!-- KYC Deposit Gate Barrier (Shown when unverified or pending) -->
+                <div id="depositKycGate" class="hidden p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 flex flex-col gap-2.5">
+                    <div class="flex items-start gap-3">
+                        <div class="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg shrink-0">
+                            🛡️
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 id="depositKycGateTitle" class="text-xs font-bold text-white font-heading">Identity Verification (KYC) Required</h4>
+                            <p id="depositKycGateDesc" class="text-[11px] text-[#848E9C] mt-0.5 leading-relaxed">
+                                Under international compliance standards, identity verification is required prior to depositing digital assets into your Spot Wallet.
+                            </p>
+                        </div>
+                    </div>
+                    <button type="button" id="btnGoToKyc" class="w-full py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-[#080A0D] font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-[0_0_15px_rgba(245,158,11,0.25)]">
+                        <span>Complete Identity Verification (KYC) Now</span>
+                        <span>&rarr;</span>
+                    </button>
+                </div>
+
+                <!-- Active Deposit Form Container -->
+                <div id="depositFormWrap" class="flex flex-col gap-4">
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-[#848E9C] block font-medium">Select Deposit Network</label>
+                            <span id="depositKycVerifiedPill" class="hidden text-[10px] text-[#0ECB81] font-mono bg-[#0ECB81]/10 border border-[#0ECB81]/25 px-2 py-0.5 rounded font-bold">✓ KYC Verified</span>
+                        </div>
+                        <div class="grid grid-cols-4 gap-1.5">
+                            <button type="button" class="net-select-btn py-2 px-1 rounded-lg border border-[#0ECB81] bg-[#0ECB81]/10 text-white font-bold text-center text-[11px] relative cursor-pointer" data-net="USDT-BEP20">
+                                <span>BEP20</span>
+                                <span class="block text-[8px] text-[#0ECB81] font-mono leading-none mt-0.5">Low Fee</span>
+                            </button>
+                            <button type="button" class="net-select-btn py-2 px-1 rounded-lg border border-white/10 bg-white/[0.02] text-[#848E9C] hover:text-white font-medium text-center text-[11px] cursor-pointer" data-net="USDT-TRC20">
+                                <span>TRC20</span>
+                            </button>
+                            <button type="button" class="net-select-btn py-2 px-1 rounded-lg border border-white/10 bg-white/[0.02] text-[#848E9C] hover:text-white font-medium text-center text-[11px] cursor-pointer" data-net="USDT-ERC20">
+                                <span>ERC20</span>
+                            </button>
+                            <button type="button" class="net-select-btn py-2 px-1 rounded-lg border border-white/10 bg-white/[0.02] text-[#848E9C] hover:text-white font-medium text-center text-[11px] cursor-pointer" data-net="USDT-SOL">
+                                <span>SOL</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Assigned Company Deposit Address & QR Showcase Card -->
+                    <div class="bg-black/40 p-4 rounded-xl border border-white/10 flex flex-col gap-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[11px] text-[#848E9C] font-medium">Assigned Payment Address</span>
+                            <span id="depositNetworkBadge" class="text-[10px] text-[#0ECB81] font-bold font-mono bg-[#0ECB81]/10 px-2 py-0.5 rounded border border-[#0ECB81]/20">
+                                BNB Smart Chain (BEP20)
+                            </span>
+                        </div>
+
+                        <!-- Address + Copy + QR Row -->
+                        <div class="flex flex-col sm:flex-row items-center gap-3 bg-[#12161E] p-3 rounded-xl border border-white/5">
+                            <!-- QR Code Box -->
+                            <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-xl bg-white p-1.5 flex items-center justify-center shrink-0 shadow-md">
+                                <img id="depositQrImg" src="" alt="Deposit QR Code" class="w-full h-full object-contain rounded">
+                            </div>
+
+                            <div class="flex-1 min-w-0 w-full flex flex-col justify-between gap-2">
+                                <div>
+                                    <span class="text-[10px] text-[#848E9C] uppercase font-mono block">Send USDT to this address:</span>
+                                    <div id="assignedDepositAddress" class="font-mono text-xs text-white font-bold break-all bg-black/50 p-2 rounded-lg border border-white/10 mt-1 select-all">
+                                        Loading address...
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" id="btnCopyDepositAddress" class="flex-1 py-1.5 px-3 rounded-lg bg-[#0ECB81]/15 hover:bg-[#0ECB81] text-[#0ECB81] hover:text-[#080A0D] border border-[#0ECB81]/30 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                        </svg>
+                                        <span id="copyAddressBtnText">Copy Address</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-[10px] text-[#848E9C] flex items-center gap-1.5 bg-amber-500/10 text-amber-300/90 p-2 rounded-lg border border-amber-500/20">
+                            <span>⚠️</span>
+                            <span>Send <strong>only USDT</strong> on the selected network. Cross-chain transfers cannot be recovered.</span>
+                        </div>
+                    </div>
+
+                    <!-- Payment Proof Form: Amount Sent + TxID -->
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-[#848E9C] block mb-1 font-medium">1. Amount Sent (USDT)</label>
+                            <input type="number" id="depositAmountInput" value="1000" min="10" step="any" class="w-full bg-[#12161E] border border-white/10 rounded-xl p-3 text-white font-mono text-base font-bold outline-none focus:border-[#0ECB81] transition-colors">
+                            
+                            <!-- Quick Amount Preset Pills -->
+                            <div class="grid grid-cols-4 gap-1.5 mt-2">
+                                <button type="button" class="quick-dep-amt py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[#848E9C] hover:text-white text-[11px] font-mono transition-colors cursor-pointer" data-amt="250">+$250</button>
+                                <button type="button" class="quick-dep-amt py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[#848E9C] hover:text-white text-[11px] font-mono transition-colors cursor-pointer" data-amt="500">+$500</button>
+                                <button type="button" class="quick-dep-amt py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[#848E9C] hover:text-white text-[11px] font-mono transition-colors cursor-pointer" data-amt="1000">+$1,000</button>
+                                <button type="button" class="quick-dep-amt py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[#848E9C] hover:text-white text-[11px] font-mono transition-colors cursor-pointer" data-amt="5000">+$5,000</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-[#848E9C] block font-medium">2. Blockchain Transaction Hash (TxID)</label>
+                                <span class="text-[10px] text-white/40 font-mono">Required</span>
+                            </div>
+                            <input type="text" id="depositTxidInput" placeholder="Paste on-chain 0x... TxID from Binance, Trust Wallet, etc." class="w-full bg-[#12161E] border border-white/10 rounded-xl p-3 text-white font-mono text-xs outline-none focus:border-[#0ECB81] transition-colors" required>
+                            <p class="text-[10px] text-[#848E9C] mt-1">Copy the Transaction ID / Hash from your crypto wallet's withdrawal receipt.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between text-[11px] text-[#848E9C] px-1">
+                        <span>Minimum Deposit: <strong class="text-white" id="minDepDisplay">10.00 USDT</strong></span>
+                        <span>Deposit Fee: <strong class="text-[#0ECB81]">0.00% ($0.00)</strong></span>
+                    </div>
+
+                    <button type="button" id="confirmDepositBtn" class="w-full py-3.5 rounded-xl bg-[#0ECB81] text-[#080A0D] font-bold text-sm hover:bg-[#00F59B] transition-all shadow-[0_0_20px_rgba(14,203,129,0.3)] flex items-center justify-center gap-2 mt-1 cursor-pointer">
+                        <span>Submit Payment Proof for Verification</span>
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </button>
+                    <p class="text-[10px] text-center text-[#848E9C]">Once submitted, our compliance desk verifies on-chain receipt on BscScan and credits your balance.</p>
+                </div>
+            </div>
+
+            <!-- 2. Withdraw View -->
+            <div id="withdrawView" class="flex flex-col gap-4 text-xs" style="display: none;">
+                <!-- Network Selector Pills -->
+                <div>
+                    <label class="text-[#848E9C] block mb-1.5 font-medium">Select Network</label>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button type="button" class="withdraw-net-btn py-2 rounded-xl text-xs font-bold border border-[#0ECB81] bg-[#0ECB81]/10 text-white transition-all shadow-sm" data-net="USDT-TRC20">TRC20</button>
+                        <button type="button" class="withdraw-net-btn py-2 rounded-xl text-xs font-medium border border-white/10 bg-white/[0.02] text-[#848E9C] hover:text-white transition-all" data-net="USDT-ERC20">ERC20</button>
+                        <button type="button" class="withdraw-net-btn py-2 rounded-xl text-xs font-medium border border-white/10 bg-white/[0.02] text-[#848E9C] hover:text-white transition-all" data-net="USDT-BEP20">BEP20</button>
+                        <button type="button" class="withdraw-net-btn py-2 rounded-xl text-xs font-medium border border-white/10 bg-white/[0.02] text-[#848E9C] hover:text-white transition-all" data-net="USDT-SOL">SOL</button>
+                    </div>
+                </div>
+
+                <!-- Destination Crypto Address -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label id="withdrawDestLabel" class="text-[#848E9C] block font-medium">Destination TRC20 Wallet Address</label>
+                        <span id="withdrawNetBadge" class="text-[10px] text-[#0ECB81] bg-[#0ECB81]/10 px-1.5 py-0.5 rounded font-mono font-bold">TRC20</span>
+                    </div>
+                    <input type="text" id="withdrawDestinationInput" placeholder="Enter your TRON (TRC20) USDT address (starts with T...)" class="w-full bg-[#12161E] border border-white/10 rounded-xl p-3 text-white font-mono text-xs outline-none focus:border-[#0ECB81] transition-colors">
+                    <p id="withdrawAddressHint" class="text-[10px] text-[#848E9C] mt-1">Please ensure the recipient address supports the <strong class="text-white">TRON (TRC20)</strong> network.</p>
+                </div>
+
+                <!-- Withdraw Amount Selection -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-[#848E9C] block font-medium">Withdraw Amount (USDT)</label>
+                        <span class="text-[11px] text-[#848E9C]">Available: <strong id="withdrawAvailableBal" class="text-white font-mono">$0.00</strong></span>
+                    </div>
+                    <input type="number" id="withdrawAmountInput" value="500" min="10" step="any" class="w-full bg-[#12161E] border border-white/10 rounded-xl p-3 text-white font-mono text-base font-bold outline-none focus:border-[#0ECB81] transition-colors">
+                    
+                    <!-- Quick Amount Preset Pills -->
+                    <div class="grid grid-cols-4 gap-1.5 mt-2">
+                        <button type="button" class="quick-with-amt py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[#848E9C] hover:text-white text-[11px] font-mono transition-colors" data-amt="100">+$100</button>
+                        <button type="button" class="quick-with-amt py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[#848E9C] hover:text-white text-[11px] font-mono transition-colors" data-amt="250">+$250</button>
+                        <button type="button" class="quick-with-amt py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[#848E9C] hover:text-white text-[11px] font-mono transition-colors" data-amt="500">+$500</button>
+                        <button type="button" class="quick-with-amt py-1 rounded-lg bg-[#0ECB81]/10 hover:bg-[#0ECB81]/20 border border-[#0ECB81]/30 text-[#0ECB81] text-[11px] font-mono font-bold transition-colors" data-amt="MAX">MAX</button>
+                    </div>
+                </div>
+
+                <div class="bg-black/30 p-3 rounded-xl border border-white/5 space-y-1 text-[11px] text-[#848E9C]">
+                    <div class="flex justify-between"><span>Network Fee</span><span id="withdrawFeeDisplay" class="text-white font-mono">1.00 USDT</span></div>
+                    <div class="flex justify-between"><span>Estimated Arrival</span><span id="withdrawTimeDisplay" class="text-[#0ECB81]">~2-5 Minutes</span></div>
+                </div>
+
+                <button type="button" id="confirmWithdrawBtn" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#F6465D] to-red-600 text-white font-bold text-sm hover:brightness-110 transition-all shadow-[0_0_20px_rgba(246,70,93,0.3)] flex items-center justify-center gap-2 mt-1">
+                    <span>Confirm Withdrawal</span>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- 3. Transaction History View -->
+            <div id="historyView" class="flex flex-col gap-3 text-xs" style="display: none;">
+                <!-- Subtabs -->
+                <div class="flex gap-2 p-1 bg-white/[0.04] rounded-lg border border-white/5">
+                    <button type="button" id="subTabDeposits" class="flex-1 py-1 rounded-md text-[11px] font-bold bg-[#0ECB81]/15 text-[#0ECB81] border border-[#0ECB81]/30 transition-all">Deposits</button>
+                    <button type="button" id="subTabWithdrawals" class="flex-1 py-1 rounded-md text-[11px] font-medium text-[#848E9C] hover:text-white transition-all">Withdrawals</button>
+                </div>
+
+                <!-- Deposits Table Wrap -->
+                <div id="depositTableWrap" class="max-h-[250px] overflow-y-auto rounded-xl border border-white/10">
+                    <table class="w-full text-left font-mono text-[11px]">
+                        <thead>
+                            <tr class="bg-black/40 border-b border-white/10 text-[#848E9C] uppercase text-[10px]">
+                                <th class="py-2.5 px-3">Date</th>
+                                <th class="py-2.5 px-3">Net</th>
+                                <th class="py-2.5 px-3">Amount</th>
+                                <th class="py-2.5 px-3 text-right">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="depositHistoryTableBody" class="divide-y divide-white/5">
+                            <tr><td colspan="4" class="py-6 text-center text-[#848E9C]">Loading deposits...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Withdrawals Table Wrap -->
+                <div id="withdrawalTableWrap" class="max-h-[250px] overflow-y-auto rounded-xl border border-white/10" style="display: none;">
+                    <table class="w-full text-left font-mono text-[11px]">
+                        <thead>
+                            <tr class="bg-black/40 border-b border-white/10 text-[#848E9C] uppercase text-[10px]">
+                                <th class="py-2.5 px-3">Date</th>
+                                <th class="py-2.5 px-3">Destination</th>
+                                <th class="py-2.5 px-3">Amount</th>
+                                <th class="py-2.5 px-3 text-right">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="withdrawHistoryTableBody" class="divide-y divide-white/5">
+                            <tr><td colspan="4" class="py-6 text-center text-[#848E9C]">Loading withdrawals...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 4. KYC Identity Verification View -->
+            <div id="kycView" class="flex flex-col gap-4 text-xs" style="display: none;">
+                <!-- Status Banner -->
+                <div id="kycStatusBanner" class="p-3.5 rounded-xl border flex items-start gap-3 bg-amber-500/10 border-amber-500/30 text-amber-400">
+                    <div id="kycStatusIcon" class="text-xl shrink-0">🛡️</div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-center mb-0.5">
+                            <span id="kycStatusTitle" class="font-bold text-white text-xs">Account Status: Unverified</span>
+                            <span id="kycStatusTag" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">UNVERIFIED</span>
+                        </div>
+                        <p id="kycStatusDesc" class="text-[11px] text-[#848E9C] leading-relaxed">
+                            Complete identity verification below to unlock cryptocurrency deposits and instant spot settlement.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Verified Success State -->
+                <div id="kycVerifiedCard" class="hidden bg-[#12161E] border border-[#0ECB81]/30 rounded-xl p-6 text-center flex flex-col items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-[#0ECB81]/15 text-[#0ECB81] flex items-center justify-center text-2xl font-bold">✓</div>
+                    <div>
+                        <h4 class="text-sm font-bold text-white font-heading">Level 1 Verification Active</h4>
+                        <p class="text-[11px] text-[#848E9C] mt-1 max-w-sm mx-auto">Your identity documents have been approved by compliance. Your Spot Wallet is fully unlocked for deposits and trading.</p>
+                    </div>
+                    <button type="button" id="btnGoToDeposit" class="mt-1 px-5 py-2.5 rounded-xl bg-[#0ECB81] text-[#080A0D] font-bold text-xs hover:bg-[#00F59B] transition-all cursor-pointer">Go to Deposit Gateway →</button>
+                </div>
+
+                <!-- Under Review State -->
+                <div id="kycPendingCard" class="hidden bg-[#12161E] border border-blue-500/30 rounded-xl p-6 text-center flex flex-col items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-blue-500/15 text-blue-400 flex items-center justify-center text-2xl font-bold">⏳</div>
+                    <div>
+                        <h4 class="text-sm font-bold text-white font-heading">Verification Under Review</h4>
+                        <p class="text-[11px] text-[#848E9C] mt-1 max-w-sm mx-auto">Your documents have been submitted to compliance. Verification is usually processed in under 30 minutes.</p>
+                    </div>
+                    <div class="text-[10px] font-mono text-[#848E9C] bg-white/5 px-3 py-1 rounded-lg border border-white/5">
+                        Submitted: <span id="kycSubmittedAt" class="text-white">Just now</span>
+                    </div>
+                </div>
+
+                <!-- KYC Application Form (Shown if Unverified or Rejected) -->
+                <form id="kycForm" class="flex flex-col gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div>
+                            <label class="text-[#848E9C] block mb-1 font-medium">Full Legal Name</label>
+                            <input type="text" id="kycFullName" placeholder="e.g. Johnathan Doe" class="w-full bg-[#12161E] border border-white/10 rounded-xl p-2.5 text-white font-sans text-xs outline-none focus:border-[#0ECB81] transition-colors" required>
+                        </div>
+                        <div>
+                            <label class="text-[#848E9C] block mb-1 font-medium">Date of Birth</label>
+                            <input type="date" id="kycDob" class="w-full bg-[#12161E] border border-white/10 rounded-xl p-2.5 text-white font-sans text-xs outline-none focus:border-[#0ECB81] transition-colors" required>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div>
+                            <label class="text-[#848E9C] block mb-1 font-medium">Country of Citizenship</label>
+                            <input type="text" id="kycCountry" placeholder="e.g. United Kingdom" class="w-full bg-[#12161E] border border-white/10 rounded-xl p-2.5 text-white font-sans text-xs outline-none focus:border-[#0ECB81] transition-colors" required>
+                        </div>
+                        <div>
+                            <label class="text-[#848E9C] block mb-1 font-medium">Government ID Type</label>
+                            <select id="kycIdType" class="w-full bg-[#12161E] border border-white/10 rounded-xl p-2.5 text-white font-sans text-xs outline-none focus:border-[#0ECB81] transition-colors cursor-pointer">
+                                <option value="National ID">National ID Card</option>
+                                <option value="Passport">International Passport</option>
+                                <option value="Driver's License">Driver's License</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-[#848E9C] block mb-1 font-medium">Document ID Number</label>
+                        <input type="text" id="kycIdNumber" placeholder="Enter government identification number" class="w-full bg-[#12161E] border border-white/10 rounded-xl p-2.5 text-white font-mono text-xs outline-none focus:border-[#0ECB81] transition-colors" required>
+                    </div>
+
+                    <!-- Upload Sections -->
+                    <div class="space-y-2 pt-1">
+                        <label class="text-[#848E9C] block font-medium">Document & Photo Verification</label>
+                        
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <!-- Front Document -->
+                            <div class="bg-[#12161E] border border-dashed border-white/15 rounded-xl p-3 text-center flex flex-col items-center justify-center relative hover:border-[#0ECB81]/50 transition-colors cursor-pointer min-h-[85px]">
+                                <input type="file" id="kycFrontInput" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10" required>
+                                <div id="kycFrontPreview" class="w-full h-full hidden flex-col items-center">
+                                    <img src="" alt="Front" class="max-h-14 max-w-full rounded object-contain mb-1">
+                                    <span class="text-[9px] text-[#0ECB81] font-medium">Front Attached ✓</span>
+                                </div>
+                                <div id="kycFrontPrompt" class="flex flex-col items-center gap-0.5 text-[#848E9C]">
+                                    <span class="text-sm">📄</span>
+                                    <span class="text-[10px] font-medium text-white">Upload Front Side</span>
+                                    <span class="text-[9px] text-white/40">PNG, JPG up to 5MB</span>
+                                </div>
+                            </div>
+
+                            <!-- Back Document -->
+                            <div class="bg-[#12161E] border border-dashed border-white/15 rounded-xl p-3 text-center flex flex-col items-center justify-center relative hover:border-[#0ECB81]/50 transition-colors cursor-pointer min-h-[85px]">
+                                <input type="file" id="kycBackInput" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10">
+                                <div id="kycBackPreview" class="w-full h-full hidden flex-col items-center">
+                                    <img src="" alt="Back" class="max-h-14 max-w-full rounded object-contain mb-1">
+                                    <span class="text-[9px] text-[#0ECB81] font-medium">Back Attached ✓</span>
+                                </div>
+                                <div id="kycBackPrompt" class="flex flex-col items-center gap-0.5 text-[#848E9C]">
+                                    <span class="text-sm">📄</span>
+                                    <span class="text-[10px] font-medium text-white">Upload Back Side</span>
+                                    <span class="text-[9px] text-white/40">Optional for Passport</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Selfie / Face Photo -->
+                        <div class="bg-[#12161E] border border-dashed border-white/15 rounded-xl p-3 text-center flex flex-col items-center justify-center relative hover:border-[#0ECB81]/50 transition-colors cursor-pointer min-h-[85px]">
+                            <input type="file" id="kycSelfieInput" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10" required>
+                            <div id="kycSelfiePreview" class="w-full h-full hidden flex-col items-center">
+                                <img src="" alt="Selfie" class="max-h-14 max-w-full rounded object-contain mb-1">
+                                <span class="text-[9px] text-[#0ECB81] font-medium">Selfie Attached ✓</span>
+                            </div>
+                            <div id="kycSelfiePrompt" class="flex flex-col items-center gap-0.5 text-[#848E9C]">
+                                <span class="text-sm">🤳</span>
+                                <span class="text-[10px] font-medium text-white">Upload Selfie Photo</span>
+                                <span class="text-[9px] text-white/40">Face clearly visible</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btnSubmitKyc" class="w-full py-3 rounded-xl bg-[#0ECB81] text-[#080A0D] font-bold text-xs hover:bg-[#00F59B] transition-all shadow-[0_0_20px_rgba(14,203,129,0.25)] flex items-center justify-center gap-2 mt-1 cursor-pointer">
+                        <span>Submit for Verification</span>
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Trading Terminal Logic -->
+    <script src="assets/js/trade.js"></script>
+</body>
+</html>

@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>CryptoTop - Institutional Crypto Trading & Autonomous Strategies</title>
+    <meta name="description" content="CryptoTop is a next-generation crypto exchange and autonomous algorithmic trading platform featuring sub-millisecond execution, zero-slippage routing, and audited proof of reserves.">
+    <meta name="theme-color" content="#080A0D">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CryptoTop">
+    <link rel="icon" type="image/svg+xml" href="assets/images/app-icon.svg">
+    <link rel="apple-touch-icon" href="assets/images/app-icon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800;900&family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            main: '#080A0D',
+                            card: '#12161E',
+                            border: '#1E2532',
+                            green: '#0ECB81',
+                            greenBright: '#00F59B',
+                            red: '#F6465D',
+                            blue: '#2962FF',
+                            purple: '#8B5CF6',
+                            text: '#EAECEF',
+                            muted: '#848E9C',
+                        }
+                    },
+                    fontFamily: {
+                        heading: ['Outfit', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Roboto Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom Style System -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body class="bg-[#080A0D] text-[#EAECEF] min-h-screen flex flex-col font-sans selection:bg-[#0ECB81] selection:text-[#0B0E11] cyber-grid-bg">
+
+    <!-- PWA Preview Splash Screen -->
+    <div id="appSplash" class="app-splash">
+        <div class="app-splash-orbit">
+            <div class="app-splash-orbit-core"></div>
+        </div>
+        <div class="mt-6 text-center">
+            <div class="app-splash-logo"><span>CryptoTop</span></div>
+            <div class="app-splash-subtitle">AUTONOMOUS CRYPTO INTELLIGENCE</div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="cryptotopToastContainer" class="cryptotop-toast-container capitexa-toast-container"></div>
+
+    <!-- Fixed Header -->
+    <div class="header-fixed-wrap">
+        <header class="bg-[#080A0D]/85 backdrop-blur-xl border-b border-white/[0.06]">
+            <div class="container nav-inner mx-auto max-w-[1340px] px-4 md:px-6 flex flex-col md:flex-row justify-between items-center py-2.5 md:py-0 md:h-[72px] gap-2 md:gap-0">
+                
+                <!-- Logo & Brand Status -->
+                <div class="flex items-center gap-4">
+                    <a href="index.html" class="nav-brand text-2xl font-black font-heading text-white tracking-tight flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#0ECB81] to-[#08AEEA] flex items-center justify-center shadow-[0_0_15px_rgba(14,203,129,0.4)]">
+                            <span class="text-[#080A0D] font-black text-sm">CT</span>
+                        </div>
+                        <span>Crypto<span class="text-[#0ECB81]">Top</span></span>
+                    </a>
+
+                    <!-- Status Pill -->
+                    <div class="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono text-[#0ECB81] bg-[rgba(14,203,129,0.08)] border border-[rgba(14,203,129,0.2)]">
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#0ECB81] animate-pulse"></span>
+                        <span>Engine v2.4 · 0% Maker Fees</span>
+                    </div>
+                </div>
+
+                <!-- Navigation Links -->
+                <div class="nav-links flex items-center gap-3 md:gap-6 w-full md:w-auto overflow-x-auto justify-start md:justify-end pb-1 md:pb-0">
+                    <a href="index.html" class="text-sm md:text-[15px] font-semibold text-[#0ECB81] transition-colors flex items-center gap-1">
+                        Home
+                    </a>
+                    <a href="#marketsSection" class="text-sm md:text-[15px] font-medium text-[#EAECEF] hover:text-[#0ECB81] transition-colors">Markets</a>
+                    <a href="trade.html" class="text-sm md:text-[15px] font-medium text-[#EAECEF] hover:text-[#0ECB81] transition-colors">Trade</a>
+                    <a href="#strategySection" class="text-sm md:text-[15px] font-medium text-[#EAECEF] hover:text-[#0ECB81] transition-colors">Algo Bots</a>
+                    
+                    <select id="langSwitch" class="bg-[#181A20] text-[#EAECEF] border border-white/10 rounded-lg px-2.5 py-1 text-xs md:text-sm cursor-pointer outline-none hover:border-[#0ECB81] transition-colors">
+                        <option value="en" selected>EN</option>
+                        <option value="ru">RU</option>
+                        <option value="uk">UK</option>
+                        <option value="es">ES</option>
+                        <option value="fa">FA</option>
+                    </select>
+
+                    <a href="#" id="navSupportBtn" class="text-sm md:text-[15px] font-medium text-[#EAECEF] hover:text-[#0ECB81] transition-colors">Support</a>
+                    <a href="login.html" class="text-sm md:text-[15px] font-medium text-[#EAECEF] hover:text-[#0ECB81] transition-colors">Log In</a>
+                    <a href="register.html" class="btn btn-primary text-xs md:text-sm font-semibold px-4 py-2 rounded-lg bg-[#0ECB81] text-[#0B0E11] hover:bg-[#00F59B] transition-all shadow-[0_0_15px_rgba(14,203,129,0.3)]">Sign Up</a>
+                </div>
+            </div>
+        </header>
+    </div>
+
+    <main class="flex-1">
+        <!-- Live Market Ticker Marquee -->
+        <div class="market-ticker border-b border-white/[0.05] bg-[#0A0D12]/90 backdrop-blur-sm">
+            <div class="ticker-track" id="tickerTrack">
+                <div class="ticker-item"><span class="text-[#848E9C]">BTC/USDT</span> <span class="text-[#EAECEF] font-semibold">$68,450.00</span> <span class="text-[#0ECB81] font-medium">+2.45%</span></div>
+                <div class="ticker-item"><span class="text-[#848E9C]">ETH/USDT</span> <span class="text-[#EAECEF] font-semibold">$3,850.20</span> <span class="text-[#0ECB81] font-medium">+1.82%</span></div>
+                <div class="ticker-item"><span class="text-[#848E9C]">SOL/USDT</span> <span class="text-[#EAECEF] font-semibold">$145.50</span> <span class="text-[#F6465D] font-medium">-0.45%</span></div>
+                <div class="ticker-item"><span class="text-[#848E9C]">BNB/USDT</span> <span class="text-[#EAECEF] font-semibold">$590.10</span> <span class="text-[#0ECB81] font-medium">+3.90%</span></div>
+                <div class="ticker-item"><span class="text-[#848E9C]">XRP/USDT</span> <span class="text-[#EAECEF] font-semibold">$0.6120</span> <span class="text-[#0ECB81] font-medium">+0.85%</span></div>
+                <div class="ticker-item"><span class="text-[#848E9C]">ADA/USDT</span> <span class="text-[#EAECEF] font-semibold">$0.4850</span> <span class="text-[#0ECB81] font-medium">+2.15%</span></div>
+                <div class="ticker-item"><span class="text-[#848E9C]">DOGE/USDT</span> <span class="text-[#EAECEF] font-semibold">$0.1420</span> <span class="text-[#0ECB81] font-medium">+5.40%</span></div>
+                <div class="ticker-item"><span class="text-[#848E9C]">LINK/USDT</span> <span class="text-[#EAECEF] font-semibold">$18.90</span> <span class="text-[#0ECB81] font-medium">+4.10%</span></div>
+                
+                <!-- Seamless Duplication for infinite marquee -->
+                <div class="ticker-item"><span class="text-[#848E9C]">BTC/USDT</span> <span class="text-[#EAECEF] font-semibold">$68,450.00</span> <span class="text-[#0ECB81] font-medium">+2.45%</span></div>
+                <div class="ticker-item"><span class="text-[#848E9C]">ETH/USDT</span> <span class="text-[#EAECEF] font-semibold">$3,850.20</span> <span class="text-[#0ECB81] font-medium">+1.82%</span></div>
+                <div class="ticker-item"><span class="text-[#848E9C]">SOL/USDT</span> <span class="text-[#EAECEF] font-semibold">$145.50</span> <span class="text-[#F6465D] font-medium">-0.45%</span></div>
+                <div class="ticker-item"><span class="text-[#848E9C]">BNB/USDT</span> <span class="text-[#EAECEF] font-semibold">$590.10</span> <span class="text-[#0ECB81] font-medium">+3.90%</span></div>
+                <div class="ticker-item"><span class="text-[#848E9C]">XRP/USDT</span> <span class="text-[#EAECEF] font-semibold">$0.6120</span> <span class="text-[#0ECB81] font-medium">+0.85%</span></div>
+                <div class="ticker-item"><span class="text-[#848E9C]">ADA/USDT</span> <span class="text-[#EAECEF] font-semibold">$0.4850</span> <span class="text-[#0ECB81] font-medium">+2.15%</span></div>
+                <div class="ticker-item"><span class="text-[#848E9C]">DOGE/USDT</span> <span class="text-[#EAECEF] font-semibold">$0.1420</span> <span class="text-[#0ECB81] font-medium">+5.40%</span></div>
+                <div class="ticker-item"><span class="text-[#848E9C]">LINK/USDT</span> <span class="text-[#EAECEF] font-semibold">$18.90</span> <span class="text-[#0ECB81] font-medium">+4.10%</span></div>
+            </div>
+        </div>
+
+        <!-- ===================================================================
+             HERO SECTION: Institutional Headline + Interactive Quick-Swap Widget
+             =================================================================== -->
+        <section class="relative pt-12 md:pt-20 pb-16 md:pb-24 overflow-hidden">
+            <!-- Ambient Glow Overlays -->
+            <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[350px] bg-gradient-to-r from-[#0ECB81]/15 to-[#8B5CF6]/15 blur-[120px] rounded-full pointer-events-none"></div>
+
+            <div class="container max-w-[1340px] mx-auto px-4 md:px-6 relative z-10">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+                    
+                    <!-- Left Column: Value Proposition & CTAs -->
+                    <div class="lg:col-span-7 flex flex-col items-start text-left">
+                        
+                        <!-- Release Pill -->
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-xs font-medium text-white mb-6 backdrop-blur-md">
+                            <span class="px-2 py-0.5 rounded-full bg-[#0ECB81] text-[#080A0D] font-bold text-[10px] uppercase tracking-wider">LIVE</span>
+                            <span class="text-[#EAECEF]">CryptoTop Autonomous Liquidity Engine v2.4</span>
+                            <svg class="w-3.5 h-3.5 text-[#0ECB81]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </div>
+
+                        <!-- Mega Headline -->
+                        <h1 class="text-4xl md:text-6xl lg:text-[62px] font-black font-heading text-white tracking-tight leading-[1.1] mb-6">
+                            Institutional Precision.<br>
+                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00F59B] via-[#0ECB81] to-[#08AEEA]">Autonomous Execution.</span>
+                        </h1>
+
+                        <!-- Subtitle -->
+                        <p class="text-base md:text-lg text-[#848E9C] max-w-[620px] leading-relaxed mb-8">
+                            Trade global spot digital assets with sub-millisecond execution, consolidated cross-venue liquidity, and pre-built algorithmic strategies running 24/7 in the cloud.
+                        </p>
+
+                        <!-- CTA Group -->
+                        <div class="flex flex-wrap items-center gap-4 w-full sm:w-auto mb-10">
+                            <a href="trade.html" class="w-full sm:w-auto px-7 py-3.5 rounded-xl font-bold text-sm md:text-base text-[#080A0D] bg-[#0ECB81] hover:bg-[#00F59B] transition-all shadow-[0_0_25px_rgba(14,203,129,0.35)] text-center flex items-center justify-center gap-2">
+                                <span>Launch Spot Terminal</span>
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                                </svg>
+                            </a>
+                            <a href="#strategySection" class="w-full sm:w-auto px-7 py-3.5 rounded-xl font-bold text-sm md:text-base text-white bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 transition-all text-center">
+                                Explore Algo Bots
+                            </a>
+                        </div>
+
+                        <!-- Institutional Metric Chips -->
+                        <div class="grid grid-cols-3 gap-4 md:gap-6 pt-6 border-t border-white/[0.08] w-full max-w-[600px]">
+                            <div>
+                                <div class="text-2xl md:text-3xl font-black font-heading text-white">&lt; 15ms</div>
+                                <div class="text-xs text-[#848E9C] font-medium mt-0.5">Matching Latency</div>
+                            </div>
+                            <div>
+                                <div class="text-2xl md:text-3xl font-black font-heading text-[#0ECB81]">100%</div>
+                                <div class="text-xs text-[#848E9C] font-medium mt-0.5">Proof of Reserves</div>
+                            </div>
+                            <div>
+                                <div class="text-2xl md:text-3xl font-black font-heading text-white">0.00%</div>
+                                <div class="text-xs text-[#848E9C] font-medium mt-0.5">Spot Maker Fees</div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Right Column: Interactive Quick-Swap / Buy-Crypto Widget -->
+                    <div class="lg:col-span-5">
+                        <div class="glass-card-static p-6 md:p-8 rounded-2xl shadow-2xl relative border border-white/[0.1]">
+                            
+                            <!-- Widget Header -->
+                            <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/[0.06]">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2.5 h-2.5 rounded-full bg-[#0ECB81] animate-pulse"></div>
+                                    <h3 class="text-base font-bold text-white font-heading">Instant Spot Converter</h3>
+                                </div>
+                                <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-[#0ECB81]/10 text-[#0ECB81] border border-[#0ECB81]/20">Zero Slippage</span>
+                            </div>
+
+                            <!-- Conversion Form -->
+                            <div class="flex flex-col gap-2 relative">
+                                
+                                <!-- Pay Input Block -->
+                                <div class="swap-widget-input-wrap">
+                                    <div class="flex justify-between text-xs text-[#848E9C] mb-1.5">
+                                        <span>You Pay</span>
+                                        <span>Balance: <span id="swapUserBalanceDisplay" class="text-white font-mono">10,000.00 USDT</span></span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3">
+                                        <input type="number" id="swapInputPay" value="1000" min="1" step="any" class="bg-transparent text-xl md:text-2xl font-bold font-mono text-white outline-none w-full placeholder-gray-500">
+                                        <div class="flex items-center gap-2 bg-[#1E2329] px-3 py-1.5 rounded-lg shrink-0 border border-white/10">
+                                            <span class="w-5 h-5 rounded-full bg-[#26A17B] flex items-center justify-center text-[10px] font-bold text-white">₮</span>
+                                            <span class="text-sm font-bold text-white">USDT</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Switch Button -->
+                                <button type="button" id="swapSwitchBtn" class="swap-switch-btn" title="Invert Pair">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                                    </svg>
+                                </button>
+
+                                <!-- Receive Input Block -->
+                                <div class="swap-widget-input-wrap">
+                                    <div class="flex justify-between text-xs text-[#848E9C] mb-1.5">
+                                        <span>You Receive (Est.)</span>
+                                        <span class="text-[#0ECB81] font-mono">Best Route</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3">
+                                        <input type="text" id="swapInputReceive" value="0.014609" readonly class="bg-transparent text-xl md:text-2xl font-bold font-mono text-[#0ECB81] outline-none w-full">
+                                        <select id="swapTargetToken" class="bg-[#1E2329] text-white text-sm font-bold px-3 py-1.5 rounded-lg shrink-0 border border-white/10 outline-none cursor-pointer">
+                                            <option value="BTC" selected>BTC</option>
+                                            <option value="ETH">ETH</option>
+                                            <option value="SOL">SOL</option>
+                                            <option value="BNB">BNB</option>
+                                            <option value="XRP">XRP</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <!-- Swap Details Breakdown -->
+                            <div class="bg-black/30 rounded-xl p-3.5 my-5 border border-white/[0.04] text-xs flex flex-col gap-2">
+                                <div class="flex justify-between text-[#848E9C]">
+                                    <span>Exchange Rate</span>
+                                    <span id="swapRateLabel" class="text-white font-mono">1 BTC ≈ 68,450.00 USDT</span>
+                                </div>
+                                <div class="flex justify-between text-[#848E9C]">
+                                    <span>Maker Execution Fee</span>
+                                    <span class="text-[#0ECB81] font-semibold">0.00% ($0.00)</span>
+                                </div>
+                                <div class="flex justify-between text-[#848E9C]">
+                                    <span>Settlement</span>
+                                    <span class="text-white">Instant Spot Balance</span>
+                                </div>
+                            </div>
+
+                            <!-- Execute Swap CTA -->
+                            <button type="button" id="executeSwapBtn" class="w-full py-3.5 rounded-xl font-bold text-sm md:text-base text-[#080A0D] bg-gradient-to-r from-[#00F59B] to-[#0ECB81] hover:brightness-110 transition-all shadow-[0_0_20px_rgba(14,203,129,0.3)] flex items-center justify-center gap-2">
+                                <span>Execute Instant Swap</span>
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                                </svg>
+                            </button>
+
+                            <div class="text-center mt-3">
+                                <span class="text-[11px] text-[#848E9C]">Protected by CryptoTop Anti-MEV Liquidity Guard</span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================================================================
+             LIVE SPOT MARKETS TABLE (Brand New Bespoke Component)
+             =================================================================== -->
+        <section id="marketsSection" class="py-16 bg-[#0B0E14] border-y border-white/[0.06]">
+            <div class="container max-w-[1340px] mx-auto px-4 md:px-6">
+                
+                <!-- Section Header & Filter Tabs -->
+                <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+                    <div>
+                        <div class="text-xs font-bold uppercase tracking-wider text-[#0ECB81] font-mono mb-2">LIVE SPOT MARKETS</div>
+                        <h2 class="text-2xl md:text-3xl font-black font-heading text-white">Consolidated Crypto Spot Orderbooks</h2>
+                    </div>
+
+                    <!-- Filter Tabs -->
+                    <div class="flex items-center gap-2 bg-[#12161E] p-1 rounded-xl border border-white/[0.08] self-start md:self-auto">
+                        <button type="button" class="market-tab-btn px-4 py-1.5 rounded-lg text-xs md:text-sm font-semibold bg-[#0ECB81] text-[#080A0D] transition-colors" data-filter="all">All Pairs</button>
+                        <button type="button" class="market-tab-btn px-4 py-1.5 rounded-lg text-xs md:text-sm font-medium text-[#848E9C] hover:text-white transition-colors" data-filter="gainers">Top Gainers</button>
+                        <button type="button" class="market-tab-btn px-4 py-1.5 rounded-lg text-xs md:text-sm font-medium text-[#848E9C] hover:text-white transition-colors" data-filter="volume">High Volume</button>
+                    </div>
+                </div>
+
+                <!-- Markets Table Container -->
+                <div class="overflow-x-auto rounded-2xl border border-white/[0.08] bg-[#12161E]/70 backdrop-blur-xl">
+                    <table class="w-full text-left border-collapse min-w-[760px]">
+                        <thead>
+                            <tr class="border-b border-white/[0.06] text-xs uppercase text-[#848E9C] font-semibold tracking-wider bg-black/20">
+                                <th class="py-4 px-6">Asset Pair</th>
+                                <th class="py-4 px-6">Mark Price</th>
+                                <th class="py-4 px-6">24h Change</th>
+                                <th class="py-4 px-6">24h High / Low</th>
+                                <th class="py-4 px-6">24h Volume</th>
+                                <th class="py-4 px-6 text-center">7D Trend</th>
+                                <th class="py-4 px-6 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="marketTableBody" class="divide-y divide-white/[0.04] text-sm">
+                            
+                            <!-- Row 1: BTC -->
+                            <tr class="hover:bg-white/[0.02] transition-colors" data-gain="2.45" data-vol="1240000000">
+                                <td class="py-4 px-6">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-[#F7931A]/20 text-[#F7931A] font-bold flex items-center justify-center font-mono">₿</div>
+                                        <div>
+                                            <span class="font-bold text-white block">Bitcoin</span>
+                                            <span class="text-xs text-[#848E9C] font-mono">BTC / USDT</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6 font-mono font-bold text-white">$68,450.00</td>
+                                <td class="py-4 px-6">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold text-[#0ECB81] bg-[#0ECB81]/10">+2.45%</span>
+                                </td>
+                                <td class="py-4 px-6 font-mono text-xs text-[#848E9C]">
+                                    <div class="text-white">$69,120.00</div>
+                                    <div>$66,980.00</div>
+                                </td>
+                                <td class="py-4 px-6 font-mono text-sm text-[#EAECEF]">$1.24B</td>
+                                <td class="py-4 px-6 text-center">
+                                    <svg class="w-24 h-7 mx-auto stroke-[#0ECB81] fill-none" viewBox="0 0 100 30">
+                                        <polyline points="0,22 15,18 30,24 45,14 60,16 75,8 100,5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </td>
+                                <td class="py-4 px-6 text-right">
+                                    <a href="trade.html?pair=BTC_USDT" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-[#0ECB81] bg-[#0ECB81]/10 border border-[#0ECB81]/30 hover:bg-[#0ECB81] hover:text-[#080A0D] transition-all">Trade Spot</a>
+                                </td>
+                            </tr>
+
+                            <!-- Row 2: ETH -->
+                            <tr class="hover:bg-white/[0.02] transition-colors" data-gain="1.82" data-vol="890000000">
+                                <td class="py-4 px-6">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-[#627EEA]/20 text-[#627EEA] font-bold flex items-center justify-center font-mono">Ξ</div>
+                                        <div>
+                                            <span class="font-bold text-white block">Ethereum</span>
+                                            <span class="text-xs text-[#848E9C] font-mono">ETH / USDT</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6 font-mono font-bold text-white">$3,850.20</td>
+                                <td class="py-4 px-6">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold text-[#0ECB81] bg-[#0ECB81]/10">+1.82%</span>
+                                </td>
+                                <td class="py-4 px-6 font-mono text-xs text-[#848E9C]">
+                                    <div class="text-white">$3,910.00</div>
+                                    <div>$3,780.00</div>
+                                </td>
+                                <td class="py-4 px-6 font-mono text-sm text-[#EAECEF]">$890.4M</td>
+                                <td class="py-4 px-6 text-center">
+                                    <svg class="w-24 h-7 mx-auto stroke-[#0ECB81] fill-none" viewBox="0 0 100 30">
+                                        <polyline points="0,20 20,22 40,15 60,18 80,10 100,7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </td>
+                                <td class="py-4 px-6 text-right">
+                                    <a href="trade.html?pair=ETH_USDT" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-[#0ECB81] bg-[#0ECB81]/10 border border-[#0ECB81]/30 hover:bg-[#0ECB81] hover:text-[#080A0D] transition-all">Trade Spot</a>
+                                </td>
+                            </tr>
+
+                            <!-- Row 3: SOL -->
+                            <tr class="hover:bg-white/[0.02] transition-colors" data-gain="-0.45" data-vol="610000000">
+                                <td class="py-4 px-6">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-[#14F195]/20 text-[#14F195] font-bold flex items-center justify-center font-mono">◎</div>
+                                        <div>
+                                            <span class="font-bold text-white block">Solana</span>
+                                            <span class="text-xs text-[#848E9C] font-mono">SOL / USDT</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6 font-mono font-bold text-white">$145.50</td>
+                                <td class="py-4 px-6">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold text-[#F6465D] bg-[#F6465D]/10">-0.45%</span>
+                                </td>
+                                <td class="py-4 px-6 font-mono text-xs text-[#848E9C]">
+                                    <div class="text-white">$149.80</div>
+                                    <div>$143.20</div>
+                                </td>
+                                <td class="py-4 px-6 font-mono text-sm text-[#EAECEF]">$610.2M</td>
+                                <td class="py-4 px-6 text-center">
+                                    <svg class="w-24 h-7 mx-auto stroke-[#F6465D] fill-none" viewBox="0 0 100 30">
+                                        <polyline points="0,8 25,12 50,10 75,22 100,24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </td>
+                                <td class="py-4 px-6 text-right">
+                                    <a href="trade.html?pair=SOL_USDT" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-[#0ECB81] bg-[#0ECB81]/10 border border-[#0ECB81]/30 hover:bg-[#0ECB81] hover:text-[#080A0D] transition-all">Trade Spot</a>
+                                </td>
+                            </tr>
+
+                            <!-- Row 4: BNB -->
+                            <tr class="hover:bg-white/[0.02] transition-colors" data-gain="3.90" data-vol="420000000">
+                                <td class="py-4 px-6">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-[#F3BA2F]/20 text-[#F3BA2F] font-bold flex items-center justify-center font-mono">🔶</div>
+                                        <div>
+                                            <span class="font-bold text-white block">BNB</span>
+                                            <span class="text-xs text-[#848E9C] font-mono">BNB / USDT</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6 font-mono font-bold text-white">$590.10</td>
+                                <td class="py-4 px-6">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold text-[#0ECB81] bg-[#0ECB81]/10">+3.90%</span>
+                                </td>
+                                <td class="py-4 px-6 font-mono text-xs text-[#848E9C]">
+                                    <div class="text-white">$598.00</div>
+                                    <div>$568.50</div>
+                                </td>
+                                <td class="py-4 px-6 font-mono text-sm text-[#EAECEF]">$420.7M</td>
+                                <td class="py-4 px-6 text-center">
+                                    <svg class="w-24 h-7 mx-auto stroke-[#0ECB81] fill-none" viewBox="0 0 100 30">
+                                        <polyline points="0,25 20,20 40,22 60,12 80,14 100,6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </td>
+                                <td class="py-4 px-6 text-right">
+                                    <a href="trade.html?pair=BTC_USDT" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-[#0ECB81] bg-[#0ECB81]/10 border border-[#0ECB81]/30 hover:bg-[#0ECB81] hover:text-[#080A0D] transition-all">Trade Spot</a>
+                                </td>
+                            </tr>
+
+                            <!-- Row 5: DOGE -->
+                            <tr class="hover:bg-white/[0.02] transition-colors" data-gain="5.40" data-vol="380000000">
+                                <td class="py-4 px-6">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-[#C2A633]/20 text-[#C2A633] font-bold flex items-center justify-center font-mono">Ð</div>
+                                        <div>
+                                            <span class="font-bold text-white block">Dogecoin</span>
+                                            <span class="text-xs text-[#848E9C] font-mono">DOGE / USDT</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6 font-mono font-bold text-white">$0.1420</td>
+                                <td class="py-4 px-6">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold text-[#0ECB81] bg-[#0ECB81]/10">+5.40%</span>
+                                </td>
+                                <td class="py-4 px-6 font-mono text-xs text-[#848E9C]">
+                                    <div class="text-white">$0.1480</div>
+                                    <div>$0.1340</div>
+                                </td>
+                                <td class="py-4 px-6 font-mono text-sm text-[#EAECEF]">$380.1M</td>
+                                <td class="py-4 px-6 text-center">
+                                    <svg class="w-24 h-7 mx-auto stroke-[#0ECB81] fill-none" viewBox="0 0 100 30">
+                                        <polyline points="0,26 25,18 50,15 75,10 100,4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </td>
+                                <td class="py-4 px-6 text-right">
+                                    <a href="trade.html?pair=DOGE_USDT" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-[#0ECB81] bg-[#0ECB81]/10 border border-[#0ECB81]/30 hover:bg-[#0ECB81] hover:text-[#080A0D] transition-all">Trade Spot</a>
+                                </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-4 flex justify-between items-center text-xs text-[#848E9C]">
+                    <div>Showing 5 of 9 supported spot crypto assets</div>
+                    <a href="trade.html" class="text-[#0ECB81] hover:underline font-medium flex items-center gap-1">
+                        View All Assets in Terminal &rarr;
+                    </a>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ===================================================================
+             INTERACTIVE STRATEGY & PROFIT SIMULATOR (Brand New Bespoke Component)
+             =================================================================== -->
+        <section id="strategySection" class="py-20 relative overflow-hidden">
+            <div class="absolute top-1/2 right-10 w-[500px] h-[500px] bg-[#8B5CF6]/10 blur-[130px] rounded-full pointer-events-none"></div>
+
+            <div class="container max-w-[1340px] mx-auto px-4 md:px-6 relative z-10">
+                
+                <div class="text-center max-w-[700px] mx-auto mb-14">
+                    <div class="text-xs font-bold uppercase tracking-wider text-[#0ECB81] font-mono mb-2">AUTONOMOUS QUANT ALGORITHMS</div>
+                    <h2 class="text-3xl md:text-5xl font-black font-heading text-white tracking-tight mb-4">Simulate Algorithmic Returns</h2>
+                    <p class="text-sm md:text-base text-[#848E9C]">Estimate your projected performance by adjusting your deployed capital and automated strategy model.</p>
+                </div>
+
+                <div class="glass-card-static max-w-[1050px] mx-auto p-6 md:p-10 rounded-3xl border border-white/[0.1] shadow-2xl">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                        
+                        <!-- Left Controls: Capital Slider & Strategy Selector -->
+                        <div class="lg:col-span-7 flex flex-col gap-6">
+                            
+                            <!-- Strategy Selector Pills -->
+                            <div>
+                                <label class="text-xs font-bold uppercase tracking-wider text-[#848E9C] block mb-3">1. Select Strategy Model</label>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <button type="button" class="strategy-pill-btn p-3 rounded-xl border border-[#0ECB81] bg-[#0ECB81]/15 text-white text-left transition-all" data-strategy="grid" data-apy="28.4" data-win="84.6" data-risk="Moderate">
+                                        <div class="text-xs font-bold font-heading text-[#0ECB81]">Grid Bot</div>
+                                        <div class="text-[11px] text-[#848E9C] mt-0.5">High Frequency</div>
+                                    </button>
+                                    <button type="button" class="strategy-pill-btn p-3 rounded-xl border border-white/10 bg-white/[0.02] text-white text-left hover:border-white/30 transition-all" data-strategy="dca" data-apy="19.2" data-win="92.1" data-risk="Conservative">
+                                        <div class="text-xs font-bold font-heading text-white">Smart DCA</div>
+                                        <div class="text-[11px] text-[#848E9C] mt-0.5">Risk Dampened</div>
+                                    </button>
+                                    <button type="button" class="strategy-pill-btn p-3 rounded-xl border border-white/10 bg-white/[0.02] text-white text-left hover:border-white/30 transition-all" data-strategy="alpha" data-apy="37.8" data-win="78.3" data-risk="Aggressive">
+                                        <div class="text-xs font-bold font-heading text-white">Alpha Trend</div>
+                                        <div class="text-[11px] text-[#848E9C] mt-0.5">Momentum Break</div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Capital Slider -->
+                            <div>
+                                <div class="flex justify-between items-center mb-3">
+                                    <label class="text-xs font-bold uppercase tracking-wider text-[#848E9C]">2. Deployed Capital</label>
+                                    <div class="text-xl md:text-2xl font-black font-mono text-white flex items-center gap-1">
+                                        <span id="sliderCapitalDisplay">$5,000</span>
+                                        <span class="text-xs text-[#848E9C] font-normal">USDT</span>
+                                    </div>
+                                </div>
+                                <input type="range" id="capitalRange" min="500" max="50000" step="500" value="5000" class="cryptotop-slider capitexa-slider">
+                                <div class="flex justify-between text-xs text-[#848E9C] font-mono mt-2">
+                                    <span>$500 Min</span>
+                                    <span>$25,000</span>
+                                    <span>$50,000 Max</span>
+                                </div>
+                            </div>
+
+                            <div class="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] text-xs text-[#848E9C] flex items-center gap-3">
+                                <svg class="w-5 h-5 text-[#0ECB81] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span>Simulated metrics based on 180-day historical tick backtesting across top spot orderbooks. Real-world execution fees are 0% for makers.</span>
+                            </div>
+
+                        </div>
+
+                        <!-- Right Stats: Dynamic Simulated Return Card -->
+                        <div class="lg:col-span-5 bg-gradient-to-b from-[#141A24] to-[#0D1117] p-6 md:p-8 rounded-2xl border border-white/[0.08] flex flex-col justify-between h-full">
+                            
+                            <div>
+                                <div class="text-xs uppercase font-bold text-[#848E9C] tracking-wider mb-1">Estimated 30-Day APY</div>
+                                <div class="flex items-baseline gap-2 mb-6">
+                                    <span id="simApyValue" class="text-4xl md:text-5xl font-black font-heading text-[#0ECB81]">28.4%</span>
+                                    <span class="text-xs text-[#848E9C]">Annualized</span>
+                                </div>
+
+                                <div class="space-y-4 py-4 border-y border-white/[0.06] text-xs">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-[#848E9C]">Projected Monthly Gain:</span>
+                                        <span id="simMonthlyProfit" class="font-mono font-bold text-white text-sm">+$118.33 USDT</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-[#848E9C]">Backtest Win-Rate:</span>
+                                        <span id="simWinRate" class="font-mono font-semibold text-[#0ECB81]">84.6%</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-[#848E9C]">Risk Profile:</span>
+                                        <span id="simRiskProfile" class="font-semibold text-yellow-400">Moderate</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-[#848E9C]">Hosting & Server:</span>
+                                        <span class="text-white font-medium">Free (Zero VPS required)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-6">
+                                <a href="trade.html" class="w-full py-3.5 rounded-xl font-bold text-sm text-[#080A0D] bg-[#0ECB81] hover:bg-[#00F59B] transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(14,203,129,0.3)]">
+                                    <span>Deploy This Strategy</span>
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                                    </svg>
+                                </a>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ===================================================================
+             INSTITUTIONAL ECOSYSTEM PILLARS (6 Modern Cards)
+             =================================================================== -->
+        <section class="py-20 bg-[#0B0E14] border-t border-white/[0.06]">
+            <div class="container max-w-[1340px] mx-auto px-4 md:px-6">
+                
+                <div class="text-center max-w-[700px] mx-auto mb-16">
+                    <div class="text-xs font-bold uppercase tracking-wider text-[#0ECB81] font-mono mb-2">ENGINEERED FOR MODERN TRADERS</div>
+                    <h2 class="text-3xl md:text-4xl font-black font-heading text-white tracking-tight mb-4">Why Institutional Desks Choose CryptoTop</h2>
+                    <p class="text-sm md:text-base text-[#848E9C]">Architecture built for deterministic speed, verifiable cold storage, and non-custodial peace of mind.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Card 1 -->
+                    <div class="glass-card p-8 flex flex-col justify-between">
+                        <div>
+                            <div class="w-12 h-12 rounded-xl bg-[#0ECB81]/10 border border-[#0ECB81]/20 flex items-center justify-center text-[#0ECB81] mb-6">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold font-heading text-white mb-3">Sub-15ms Matching Engine</h3>
+                            <p class="text-sm text-[#848E9C] leading-relaxed">
+                                Process up to 150,000 orders per second per pair. Ultra-low latency memory orderbook eliminates frontrunning and requotes.
+                            </p>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-white/[0.06] text-xs font-mono text-[#0ECB81]">Deterministic Order Routing &rarr;</div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="glass-card p-8 flex flex-col justify-between">
+                        <div>
+                            <div class="w-12 h-12 rounded-xl bg-[#0ECB81]/10 border border-[#0ECB81]/20 flex items-center justify-center text-[#0ECB81] mb-6">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold font-heading text-white mb-3">100% Proof of Reserves</h3>
+                            <p class="text-sm text-[#848E9C] leading-relaxed">
+                                Every satoshi is backed 1:1 in air-gapped multi-sig cold vaults. Verifiable Merkle-tree audits with zero lending rehypothecation.
+                            </p>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-white/[0.06] text-xs font-mono text-[#0ECB81]">Cryptographically Audited &rarr;</div>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="glass-card p-8 flex flex-col justify-between">
+                        <div>
+                            <div class="w-12 h-12 rounded-xl bg-[#0ECB81]/10 border border-[#0ECB81]/20 flex items-center justify-center text-[#0ECB81] mb-6">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold font-heading text-white mb-3">Autonomous Cloud Bots</h3>
+                            <p class="text-sm text-[#848E9C] leading-relaxed">
+                                Deploy pre-configured Grid Bots, Dollar-Cost Averaging (DCA), and Trend Momentum algorithms with zero VPS management.
+                            </p>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-white/[0.06] text-xs font-mono text-[#0ECB81]">24/7 Automated Execution &rarr;</div>
+                    </div>
+
+                    <!-- Card 4 -->
+                    <div class="glass-card p-8 flex flex-col justify-between">
+                        <div>
+                            <div class="w-12 h-12 rounded-xl bg-[#0ECB81]/10 border border-[#0ECB81]/20 flex items-center justify-center text-[#0ECB81] mb-6">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold font-heading text-white mb-3">Consolidated Spot Liquidity</h3>
+                            <p class="text-sm text-[#848E9C] leading-relaxed">
+                                Smart order routing dynamically pools depth across top Tier-1 liquidity providers to ensure minimal market impact on block trades.
+                            </p>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-white/[0.06] text-xs font-mono text-[#0ECB81]">Zero Spread Widening &rarr;</div>
+                    </div>
+
+                    <!-- Card 5 -->
+                    <div class="glass-card p-8 flex flex-col justify-between">
+                        <div>
+                            <div class="w-12 h-12 rounded-xl bg-[#0ECB81]/10 border border-[#0ECB81]/20 flex items-center justify-center text-[#0ECB81] mb-6">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold font-heading text-white mb-3">Enterprise Vault Security</h3>
+                            <p class="text-sm text-[#848E9C] leading-relaxed">
+                                Multi-Party Computation (MPC) sharding, Hardware Security Modules (HSM), FIDO2 WebAuthn biometrics, and anti-phishing codes.
+                            </p>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-white/[0.06] text-xs font-mono text-[#0ECB81]">Military-Grade Defense &rarr;</div>
+                    </div>
+
+                    <!-- Card 6 -->
+                    <div class="glass-card p-8 flex flex-col justify-between">
+                        <div>
+                            <div class="w-12 h-12 rounded-xl bg-[#0ECB81]/10 border border-[#0ECB81]/20 flex items-center justify-center text-[#0ECB81] mb-6">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold font-heading text-white mb-3">Institutional APIs & Feeds</h3>
+                            <p class="text-sm text-[#848E9C] leading-relaxed">
+                                High-throughput REST endpoints, persistent duplex WebSockets, and FIX 4.4 connections tailored for algorithmic quants and hedge funds.
+                            </p>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-white/[0.06] text-xs font-mono text-[#0ECB81]">Full Quant Documentation &rarr;</div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ===================================================================
+             HOW TO GET STARTED IN 3 STEPS
+             =================================================================== -->
+        <section class="py-20">
+            <div class="container max-w-[1240px] mx-auto px-4 md:px-6">
+                
+                <div class="text-center max-w-[650px] mx-auto mb-16">
+                    <div class="text-xs font-bold uppercase tracking-wider text-[#0ECB81] font-mono mb-2">SEAMLESS ONBOARDING</div>
+                    <h2 class="text-3xl md:text-4xl font-black font-heading text-white tracking-tight mb-4">Start Trading in 3 Simple Steps</h2>
+                    <p class="text-sm md:text-base text-[#848E9C]">Zero complex verification hurdles. Enter the next era of crypto trading in under 60 seconds.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+                    
+                    <!-- Step 1 -->
+                    <div class="flex flex-col items-center text-center p-6 rounded-2xl bg-[#12161E]/40 border border-white/[0.06]">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#0ECB81] to-[#00F59B] text-[#080A0D] font-black text-2xl flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(14,203,129,0.3)]">
+                            1
+                        </div>
+                        <h3 class="text-lg font-bold font-heading text-white mb-2">Create Account</h3>
+                        <p class="text-xs md:text-sm text-[#848E9C] leading-relaxed">
+                            Register with just your email in 30 seconds. No waiting queues or invasive paperwork.
+                        </p>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="flex flex-col items-center text-center p-6 rounded-2xl bg-[#12161E]/40 border border-white/[0.06]">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#0ECB81] to-[#00F59B] text-[#080A0D] font-black text-2xl flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(14,203,129,0.3)]">
+                            2
+                        </div>
+                        <h3 class="text-lg font-bold font-heading text-white mb-2">Fund Your Balance</h3>
+                        <p class="text-xs md:text-sm text-[#848E9C] leading-relaxed">
+                            Deposit USDT, BTC, ETH, or connect your Web3 wallet for instant non-custodial access.
+                        </p>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="flex flex-col items-center text-center p-6 rounded-2xl bg-[#12161E]/40 border border-white/[0.06]">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#0ECB81] to-[#00F59B] text-[#080A0D] font-black text-2xl flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(14,203,129,0.3)]">
+                            3
+                        </div>
+                        <h3 class="text-lg font-bold font-heading text-white mb-2">Trade & Automate</h3>
+                        <p class="text-xs md:text-sm text-[#848E9C] leading-relaxed">
+                            Execute spot trades on the TradingView terminal or activate 24/7 algorithmic Grid Bots with 1 click.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="mt-12 text-center">
+                    <a href="register.html" class="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-sm md:text-base text-[#080A0D] bg-[#0ECB81] hover:bg-[#00F59B] transition-all shadow-[0_0_25px_rgba(14,203,129,0.4)]">
+                        <span>Get Started Now</span>
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </a>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <!-- ===================================================================
+         INSTITUTIONAL MULTI-COLUMN FOOTER
+         =================================================================== -->
+    <footer class="bg-[#05070A] py-14 border-t border-white/[0.08] text-xs text-[#848E9C]">
+        <div class="container max-w-[1340px] mx-auto px-4 md:px-6">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 mb-12">
+                
+                <!-- Col 1: Brand & Status -->
+                <div class="lg:col-span-2">
+                    <a href="index.html" class="text-2xl font-black font-heading text-white tracking-tight flex items-center gap-2 mb-4">
+                        <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-[#0ECB81] to-[#08AEEA] flex items-center justify-center">
+                            <span class="text-[#080A0D] font-black text-xs">CT</span>
+                        </div>
+                        <span>Crypto<span class="text-[#0ECB81]">Top</span></span>
+                    </a>
+                    <p class="text-sm text-[#848E9C] max-w-[340px] leading-relaxed mb-4">
+                        CryptoTop is an institutional digital asset exchange offering spot orderbook matching and autonomous algorithmic strategies for modern quants.
+                    </p>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-[11px] font-mono text-[#0ECB81]">
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#0ECB81] animate-pulse"></span>
+                        <span>All Core Systems Operational</span>
+                    </div>
+                </div>
+
+                <!-- Col 2: Products -->
+                <div>
+                    <h4 class="text-sm font-bold text-white font-heading uppercase tracking-wider mb-4">Products</h4>
+                    <ul class="space-y-2.5">
+                        <li><a href="trade.html" class="hover:text-[#0ECB81] transition-colors">Spot Exchange</a></li>
+                        <li><a href="#strategySection" class="hover:text-[#0ECB81] transition-colors">Algorithmic Grid Bots</a></li>
+                        <li><a href="trade.html" class="hover:text-[#0ECB81] transition-colors">TradingView Terminal</a></li>
+                    </ul>
+                </div>
+
+                <!-- Col 3: Resources -->
+                <div>
+                    <h4 class="text-sm font-bold text-white font-heading uppercase tracking-wider mb-4">Resources</h4>
+                    <ul class="space-y-2.5">
+                        <li><a href="#marketsSection" class="hover:text-[#0ECB81] transition-colors">Market Screener</a></li>
+                        <li><a href="about.html" class="hover:text-[#0ECB81] transition-colors">Proof of Reserves</a></li>
+                        <li><a href="about.html" class="hover:text-[#0ECB81] transition-colors">API Documentation</a></li>
+                        <li><a href="about.html" class="hover:text-[#0ECB81] transition-colors">Platform Status</a></li>
+                    </ul>
+                </div>
+
+                <!-- Col 4: Legal -->
+                <div>
+                    <h4 class="text-sm font-bold text-white font-heading uppercase tracking-wider mb-4">Governance</h4>
+                    <ul class="space-y-2.5">
+                        <li><a href="terms.html" class="hover:text-[#0ECB81] transition-colors">Terms of Service</a></li>
+                        <li><a href="terms.html" class="hover:text-[#0ECB81] transition-colors">Privacy Policy</a></li>
+                        <li><a href="terms.html" class="hover:text-[#0ECB81] transition-colors">AML & Risk Disclosure</a></li>
+                        <li><a href="about.html" class="hover:text-[#0ECB81] transition-colors">Security Architecture</a></li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <!-- Bottom Disclaimer & Copyright -->
+            <div class="pt-8 border-t border-white/[0.06] flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left text-[11px] text-[#848E9C]">
+                <div>
+                    &copy; 2026 CryptoTop Global Technologies Inc. All rights reserved.
+                </div>
+                <div class="max-w-[700px] text-center md:text-right">
+                    Cryptocurrency trading carries substantial risk and may not be suitable for all investors. Spot digital assets are volatile. Ensure you understand our risk disclosures before allocating funds.
+                </div>
+            </div>
+
+        </div>
+    </footer>
+
+    <!-- Floating Support Chat Action Button (FAB) -->
+    <div id="csSupportFab" class="cs-support-fab" title="Support">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span>Support</span>
+    </div>
+
+    <!-- Floating Support Chat Overlay Modal -->
+    <div id="csSupportOverlay" class="cs-support-overlay" aria-hidden="true">
+        <div class="cs-support-panel" role="dialog" aria-labelledby="csSupportTitle">
+            <div class="cs-support-header">
+                <div>
+                    <div id="csSupportTitle" class="text-base font-bold text-white flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#0ECB81] inline-block animate-pulse"></span>
+                        CryptoTop Support Desk
+                    </div>
+                    <div class="text-xs text-[#848E9C] mt-1">Institutional 24/7 Desk · Avg response &lt; 2m</div>
+                </div>
+                <button type="button" id="csSupportClose" class="text-2xl text-[#848E9C] hover:text-white transition-colors cursor-pointer leading-none" aria-label="Close">&times;</button>
+            </div>
+            
+            <div id="csSupportMessages" class="cs-support-messages">
+                <div class="cs-support-hint">Welcome to CryptoTop Support. How may we assist your account or algorithmic orders today?</div>
+            </div>
+
+            <form id="csSupportForm" class="p-4 border-t border-[#2B3139] flex flex-col gap-2.5 bg-[#181A20]">
+                <textarea id="csSupportInput" class="w-full bg-[#2B3139] border border-white/10 rounded-lg text-white p-3 text-sm focus:outline-none focus:border-[#0ECB81] transition-colors resize-none" rows="2" maxlength="2000" placeholder="Type your inquiry here..." required></textarea>
+                <button type="submit" class="btn btn-primary w-full py-2.5 text-sm font-semibold">Send Inquiry</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Client Logic -->
+    <script src="assets/js/main.js"></script>
+</body>
+
+</html>

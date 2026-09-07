@@ -1,0 +1,1884 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>CryptoTop - Administrative Compliance & Operations Desk</title>
+    <meta name="theme-color" content="#0B0E11">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <link rel="icon" type="image/svg+xml" href="assets/images/app-icon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            main: '#0B0E11',
+                            secondary: '#181A20',
+                            tertiary: '#2B3139',
+                            green: '#0ECB81',
+                            greenDark: '#08c078',
+                            red: '#F6465D',
+                            blue: '#2962FF',
+                            text: '#EAECEF',
+                            muted: '#848E9C',
+                        }
+                    },
+                    fontFamily: {
+                        heading: ['Outfit', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Roboto Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom Style System -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body class="bg-[#0B0E11] text-[#EAECEF] min-h-screen flex flex-col font-sans">
+
+    <!-- Header Navigation -->
+    <div class="header-fixed-wrap border-b border-[#2B3139] bg-[#181A20]/95 backdrop-blur-md sticky top-0 z-40">
+        <header>
+            <div class="container mx-auto max-w-[1440px] px-4 md:px-6 flex justify-between items-center h-[70px]">
+                <div class="flex items-center gap-4">
+                    <a href="index.html" class="nav-brand text-2xl font-extrabold font-heading text-white tracking-tight flex items-center gap-2">
+                        Crypto<span class="text-[#0ECB81]">Top</span>
+                    </a>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30 font-mono">
+                        COMPLIANCE DESK
+                    </span>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <div id="adminStatusBadge" class="hidden text-xs font-mono text-[#0ECB81] bg-[#0ECB81]/10 border border-[#0ECB81]/25 px-3 py-1.5 rounded-lg flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-[#0ECB81] animate-pulse"></span>
+                        <span>Key Authenticated</span>
+                        <button type="button" id="btnAdminLogout" class="ml-2 text-white/50 hover:text-rose-400 text-xs font-bold cursor-pointer" title="Lock Admin Desk">&times;</button>
+                    </div>
+
+                    <a href="trade.html" class="text-xs md:text-sm font-medium text-[#848E9C] hover:text-white transition-colors">
+                        &larr; Spot Trading
+                    </a>
+                </div>
+            </div>
+        </header>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-1 container mx-auto max-w-[1440px] px-4 md:px-6 py-8">
+        
+        <!-- Auth Barrier Banner (Shown when not authenticated) -->
+        <div id="authGateBanner" class="bg-[#181A20] border border-amber-500/30 rounded-2xl p-6 mb-8 max-w-xl mx-auto shadow-2xl">
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center text-2xl shrink-0">
+                    🛡️
+                </div>
+                <div class="flex-1">
+                    <h2 class="text-lg font-bold font-heading text-white">Compliance Admin Access</h2>
+                    <p class="text-xs text-[#848E9C] mt-1 leading-relaxed">
+                        To inspect customer deposits, payouts, and verify KYC credentials, enter your administrative secret key.
+                    </p>
+                    <form id="adminKeyForm" class="mt-4 flex gap-2">
+                        <input type="password" id="adminKeyInput" placeholder="Enter Admin Secret Key..." class="flex-1 bg-[#12161E] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-[#0ECB81] transition-colors" required>
+                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#0ECB81] text-[#080A0D] font-bold text-xs hover:bg-[#00F59B] transition-all shadow-[0_0_15px_rgba(14,203,129,0.25)]">
+                            Unlock Desk
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Authenticated Admin Desk Area -->
+        <div id="adminDeskArea" class="hidden space-y-6">
+
+            <!-- Primary Navigation Switcher: Deposits vs Withdrawals vs KYC -->
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-[#2B3139] pb-4">
+                <div class="flex items-center gap-2 p-1 bg-black/40 rounded-xl border border-white/5">
+                    <button type="button" id="tabNavDeposits" class="desk-nav-btn px-4 py-2 rounded-lg text-xs font-bold bg-[#0ECB81] text-[#080A0D] flex items-center gap-2 transition-all cursor-pointer shadow-[0_0_15px_rgba(14,203,129,0.2)]">
+                        <span>📥 Deposit Verification</span>
+                        <span id="badgePendingDeposits" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-500/20 text-amber-400 font-bold">0</span>
+                    </button>
+                    <button type="button" id="tabNavWithdrawals" class="desk-nav-btn px-4 py-2 rounded-lg text-xs font-semibold text-[#848E9C] hover:text-white flex items-center gap-2 transition-all cursor-pointer">
+                        <span>💸 Withdrawal Requests</span>
+                        <span id="badgePendingWithdrawals" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-black/30 text-[#080A0D] font-bold">0</span>
+                    </button>
+                    <button type="button" id="tabNavKyc" class="desk-nav-btn px-4 py-2 rounded-lg text-xs font-semibold text-[#848E9C] hover:text-white flex items-center gap-2 transition-all cursor-pointer">
+                        <span>🪪 KYC Identity Verification</span>
+                        <span id="badgePendingKyc" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-500/20 text-amber-400 font-bold">0</span>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button type="button" id="btnTelegramModal" class="px-4 py-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-xs font-semibold text-blue-400 hover:text-white flex items-center gap-2 transition-all cursor-pointer">
+                        <span>📲 Telegram Alerts</span>
+                        <span id="telegramStatusDot" class="w-2 h-2 rounded-full bg-gray-500"></span>
+                    </button>
+                    <button type="button" id="btnRefreshAll" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-white flex items-center gap-2 transition-all cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        <span>Refresh Desk</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- SECTION 1: DEPOSITS DESK -->
+            <div id="depositsDeskSection" class="space-y-6">
+
+                <!-- Operational Notice Banner -->
+                <div class="bg-gradient-to-r from-emerald-950/20 via-[#181A20] to-blue-950/20 border border-white/10 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-[#0ECB81]/15 text-[#0ECB81] flex items-center justify-center text-lg font-bold">
+                            📥
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-white">On-Chain Deposit Verification Desk</h3>
+                            <p class="text-xs text-[#848E9C] mt-0.5">
+                                Customer payment proofs require on-chain verification. Inspect the TxID on BscScan / TronScan before approving credit to spot balance.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Metric Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-[#181A20] border border-white/5 rounded-2xl p-5 shadow-lg">
+                        <div class="text-[11px] font-medium text-[#848E9C] uppercase tracking-wider">Pending Verification</div>
+                        <div class="text-2xl font-black font-mono text-amber-400 mt-1 flex items-baseline gap-2">
+                            <span id="statDepositPendingCount">0</span>
+                            <span class="text-xs text-amber-400/70 font-normal">deposits</span>
+                        </div>
+                        <div class="text-xs text-[#848E9C] mt-2">Volume: <strong id="statDepositPendingVol" class="text-white font-mono">$0.00</strong> USDT</div>
+                    </div>
+
+                    <div class="bg-[#181A20] border border-white/5 rounded-2xl p-5 shadow-lg">
+                        <div class="text-[11px] font-medium text-[#848E9C] uppercase tracking-wider">Approved & Credited</div>
+                        <div class="text-2xl font-black font-mono text-[#0ECB81] mt-1 flex items-baseline gap-2">
+                            <span id="statDepositApprovedCount">0</span>
+                            <span class="text-xs text-[#0ECB81]/70 font-normal">credited</span>
+                        </div>
+                        <div class="text-xs text-[#848E9C] mt-2">Settled: <strong id="statDepositApprovedVol" class="text-white font-mono">$0.00</strong> USDT</div>
+                    </div>
+
+                    <div class="bg-[#181A20] border border-white/5 rounded-2xl p-5 shadow-lg">
+                        <div class="text-[11px] font-medium text-[#848E9C] uppercase tracking-wider">Rejected Submissions</div>
+                        <div class="text-2xl font-black font-mono text-rose-400 mt-1 flex items-baseline gap-2">
+                            <span id="statDepositRejectedCount">0</span>
+                            <span class="text-xs text-rose-400/70 font-normal">rejected</span>
+                        </div>
+                        <div class="text-xs text-[#848E9C] mt-2">Invalid or fake TxID</div>
+                    </div>
+
+                    <div class="bg-[#181A20] border border-white/5 rounded-2xl p-5 shadow-lg">
+                        <div class="text-[11px] font-medium text-[#848E9C] uppercase tracking-wider">Total Deposit Inflow</div>
+                        <div class="text-2xl font-black font-mono text-white mt-1 flex items-baseline gap-2">
+                            <span id="statDepositTotalVol">$0.00</span>
+                        </div>
+                        <div class="text-xs text-[#848E9C] mt-2">Total confirmed volume</div>
+                    </div>
+                </div>
+
+                <!-- Table Filter & Search Controls -->
+                <div class="bg-[#181A20] border border-[#2B3139] rounded-2xl p-5 shadow-lg space-y-4">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                        <!-- Status Filter Tabs -->
+                        <div class="flex gap-1.5 p-1 bg-black/40 rounded-xl border border-white/5 w-full md:w-auto">
+                            <button type="button" class="dep-filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-bold bg-[#0ECB81] text-[#080A0D] transition-all" data-status="ALL">
+                                All Deposits (<span id="countDepositAll">0</span>)
+                            </button>
+                            <button type="button" class="dep-filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all" data-status="PENDING_REVIEW">
+                                Pending (<span id="countDepositPending">0</span>)
+                            </button>
+                            <button type="button" class="dep-filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all" data-status="COMPLETED">
+                                Completed (<span id="countDepositCompleted">0</span>)
+                            </button>
+                            <button type="button" class="dep-filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all" data-status="REJECTED">
+                                Rejected (<span id="countDepositRejected">0</span>)
+                            </button>
+                        </div>
+
+                        <!-- Search Input -->
+                        <div class="relative w-full md:w-72">
+                            <input type="text" id="adminDepositSearchInput" placeholder="Filter by email, TxID, address..." class="w-full bg-[#12161E] border border-white/10 rounded-xl pl-8 pr-3 py-2 text-xs text-white placeholder-[#848E9C] outline-none focus:border-[#0ECB81] transition-colors">
+                            <svg class="w-3.5 h-3.5 text-[#848E9C] absolute left-2.5 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Deposits Table -->
+                    <div class="overflow-x-auto rounded-xl border border-white/5">
+                        <table class="w-full text-left font-sans text-xs">
+                            <thead>
+                                <tr class="bg-black/40 border-b border-white/10 text-[#848E9C] uppercase text-[11px] font-mono">
+                                    <th class="py-3 px-4">Req #</th>
+                                    <th class="py-3 px-4">User Account</th>
+                                    <th class="py-3 px-4">Amount</th>
+                                    <th class="py-3 px-4">Assigned Company Vault</th>
+                                    <th class="py-3 px-4">On-Chain TxID / Explorer</th>
+                                    <th class="py-3 px-4">Created Date</th>
+                                    <th class="py-3 px-4">Status</th>
+                                    <th class="py-3 px-4 text-right">Compliance Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminDepositsTableBody" class="divide-y divide-white/5">
+                                <tr>
+                                    <td colspan="8" class="py-12 text-center text-[#848E9C]">
+                                        Loading deposit records...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Empty State Notice -->
+                    <div id="depositEmptyNotice" class="hidden text-center py-10 text-[#848E9C] text-xs">
+                        No deposits found matching your filter criteria.
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SECTION 2: WITHDRAWALS DESK -->
+            <div id="withdrawalDeskSection" class="hidden space-y-6">
+
+                <!-- Operational Notice Banner -->
+                <div class="bg-gradient-to-r from-blue-900/20 via-[#181A20] to-emerald-950/20 border border-white/10 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center text-lg font-bold">
+                            🔒
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-white">Custody & Payout Safeguard Active</h3>
+                            <p class="text-xs text-[#848E9C] mt-0.5">
+                                Customer withdrawal payouts require authorized compliance approval. Zero unreviewed leakage.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Metric Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-[#181A20] border border-white/5 rounded-2xl p-5 shadow-lg">
+                        <div class="text-[11px] font-medium text-[#848E9C] uppercase tracking-wider">Pending Review</div>
+                        <div class="text-2xl font-black font-mono text-amber-400 mt-1 flex items-baseline gap-2">
+                            <span id="statPendingCount">0</span>
+                            <span class="text-xs text-amber-400/70 font-normal">requests</span>
+                        </div>
+                        <div class="text-xs text-[#848E9C] mt-2">Volume: <strong id="statPendingVol" class="text-white font-mono">$0.00</strong> USDT</div>
+                    </div>
+
+                    <div class="bg-[#181A20] border border-white/5 rounded-2xl p-5 shadow-lg">
+                        <div class="text-[11px] font-medium text-[#848E9C] uppercase tracking-wider">Approved & Settle</div>
+                        <div class="text-2xl font-black font-mono text-[#0ECB81] mt-1 flex items-baseline gap-2">
+                            <span id="statApprovedCount">0</span>
+                            <span class="text-xs text-[#0ECB81]/70 font-normal">processed</span>
+                        </div>
+                        <div class="text-xs text-[#848E9C] mt-2">Settled: <strong id="statApprovedVol" class="text-white font-mono">$0.00</strong> USDT</div>
+                    </div>
+
+                    <div class="bg-[#181A20] border border-white/5 rounded-2xl p-5 shadow-lg">
+                        <div class="text-[11px] font-medium text-[#848E9C] uppercase tracking-wider">Rejected & Refunded</div>
+                        <div class="text-2xl font-black font-mono text-rose-400 mt-1 flex items-baseline gap-2">
+                            <span id="statRejectedCount">0</span>
+                            <span class="text-xs text-rose-400/70 font-normal">refunded</span>
+                        </div>
+                        <div class="text-xs text-[#848E9C] mt-2">Returned: <strong id="statRejectedVol" class="text-white font-mono">$0.00</strong> USDT</div>
+                    </div>
+
+                    <div class="bg-[#181A20] border border-white/5 rounded-2xl p-5 shadow-lg">
+                        <div class="text-[11px] font-medium text-[#848E9C] uppercase tracking-wider">Custody Status</div>
+                        <div class="text-2xl font-black font-mono text-white mt-1 flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-[#0ECB81] animate-pulse"></span>
+                            <span class="text-base font-bold">100% Locked</span>
+                        </div>
+                        <div class="text-xs text-[#848E9C] mt-2">Zero unreviewed leakage</div>
+                    </div>
+                </div>
+
+                <!-- Table Filter & Search Controls -->
+                <div class="bg-[#181A20] border border-[#2B3139] rounded-2xl p-5 shadow-lg space-y-4">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                        <!-- Status Filter Tabs -->
+                        <div class="flex gap-1.5 p-1 bg-black/40 rounded-xl border border-white/5 w-full md:w-auto">
+                            <button type="button" class="filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-bold bg-[#0ECB81] text-[#080A0D] transition-all" data-status="ALL">
+                                All Requests (<span id="countAll">0</span>)
+                            </button>
+                            <button type="button" class="filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all" data-status="PENDING_REVIEW">
+                                Pending (<span id="countPending">0</span>)
+                            </button>
+                            <button type="button" class="filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all" data-status="COMPLETED">
+                                Completed (<span id="countCompleted">0</span>)
+                            </button>
+                            <button type="button" class="filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all" data-status="REJECTED">
+                                Rejected (<span id="countRejected">0</span>)
+                            </button>
+                        </div>
+
+                        <!-- Search Input -->
+                        <div class="relative w-full md:w-72">
+                            <input type="text" id="adminSearchInput" placeholder="Filter by email or address..." class="w-full bg-[#12161E] border border-white/10 rounded-xl pl-8 pr-3 py-2 text-xs text-white placeholder-[#848E9C] outline-none focus:border-[#0ECB81] transition-colors">
+                            <svg class="w-3.5 h-3.5 text-[#848E9C] absolute left-2.5 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Requests Table -->
+                    <div class="overflow-x-auto rounded-xl border border-white/5">
+                        <table class="w-full text-left font-sans text-xs">
+                            <thead>
+                                <tr class="bg-black/40 border-b border-white/10 text-[#848E9C] uppercase text-[11px] font-mono">
+                                    <th class="py-3 px-4">Req #</th>
+                                    <th class="py-3 px-4">User Account</th>
+                                    <th class="py-3 px-4">Amount</th>
+                                    <th class="py-3 px-4">Destination Address</th>
+                                    <th class="py-3 px-4">Created Date</th>
+                                    <th class="py-3 px-4">Status</th>
+                                    <th class="py-3 px-4 text-right">Compliance Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminWithdrawalsTableBody" class="divide-y divide-white/5">
+                                <tr>
+                                    <td colspan="7" class="py-12 text-center text-[#848E9C]">
+                                        Loading withdrawal requests...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Empty State Notice -->
+                    <div id="emptyNotice" class="hidden text-center py-10 text-[#848E9C] text-xs">
+                        No requests found matching your filter criteria.
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SECTION 3: KYC COMPLIANCE QUEUE -->
+            <div id="kycDeskSection" class="hidden space-y-6">
+
+                <!-- Operational Notice Banner -->
+                <div class="bg-gradient-to-r from-amber-950/20 via-[#181A20] to-emerald-950/20 border border-white/10 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center text-lg font-bold">
+                            🪪
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-white">Identity Verification (KYC) Compliance Gate</h3>
+                            <p class="text-xs text-[#848E9C] mt-0.5">
+                                Review government identification documents thoroughly before authorizing customer deposit access.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Metric Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-[#181A20] border border-white/5 rounded-2xl p-5 shadow-lg">
+                        <div class="text-[11px] font-medium text-[#848E9C] uppercase tracking-wider">Pending Review</div>
+                        <div class="text-2xl font-black font-mono text-amber-400 mt-1 flex items-baseline gap-2">
+                            <span id="statKycPendingCount">0</span>
+                            <span class="text-xs text-amber-400/70 font-normal">applications</span>
+                        </div>
+                        <div class="text-xs text-[#848E9C] mt-2">Awaiting compliance decision</div>
+                    </div>
+
+                    <div class="bg-[#181A20] border border-white/5 rounded-2xl p-5 shadow-lg">
+                        <div class="text-[11px] font-medium text-[#848E9C] uppercase tracking-wider">Verified Accounts</div>
+                        <div class="text-2xl font-black font-mono text-[#0ECB81] mt-1 flex items-baseline gap-2">
+                            <span id="statKycApprovedCount">0</span>
+                            <span class="text-xs text-[#0ECB81]/70 font-normal">approved</span>
+                        </div>
+                        <div class="text-xs text-[#848E9C] mt-2">Deposit access unlocked</div>
+                    </div>
+
+                    <div class="bg-[#181A20] border border-white/5 rounded-2xl p-5 shadow-lg">
+                        <div class="text-[11px] font-medium text-[#848E9C] uppercase tracking-wider">Rejected Submissions</div>
+                        <div class="text-2xl font-black font-mono text-rose-400 mt-1 flex items-baseline gap-2">
+                            <span id="statKycRejectedCount">0</span>
+                            <span class="text-xs text-rose-400/70 font-normal">rejected</span>
+                        </div>
+                        <div class="text-xs text-[#848E9C] mt-2">Requires re-submission</div>
+                    </div>
+
+                    <div class="bg-[#181A20] border border-white/5 rounded-2xl p-5 shadow-lg">
+                        <div class="text-[11px] font-medium text-[#848E9C] uppercase tracking-wider">Total Submissions</div>
+                        <div class="text-2xl font-black font-mono text-white mt-1 flex items-baseline gap-2">
+                            <span id="statKycTotalCount">0</span>
+                            <span class="text-xs text-white/50 font-normal">recorded</span>
+                        </div>
+                        <div class="text-xs text-[#848E9C] mt-2">All-time KYC volume</div>
+                    </div>
+                </div>
+
+                <!-- Table Filter & Search Controls -->
+                <div class="bg-[#181A20] border border-[#2B3139] rounded-2xl p-5 shadow-lg space-y-4">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                        <!-- Status Filter Tabs -->
+                        <div class="flex gap-1.5 p-1 bg-black/40 rounded-xl border border-white/5 w-full md:w-auto">
+                            <button type="button" class="kyc-filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-bold bg-[#0ECB81] text-[#080A0D] transition-all" data-status="ALL">
+                                All Submissions (<span id="countKycAll">0</span>)
+                            </button>
+                            <button type="button" class="kyc-filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all" data-status="PENDING_REVIEW">
+                                Pending (<span id="countKycPending">0</span>)
+                            </button>
+                            <button type="button" class="kyc-filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all" data-status="VERIFIED">
+                                Verified (<span id="countKycVerified">0</span>)
+                            </button>
+                            <button type="button" class="kyc-filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all" data-status="REJECTED">
+                                Rejected (<span id="countKycRejected">0</span>)
+                            </button>
+                        </div>
+
+                        <!-- Search Input -->
+                        <div class="relative w-full md:w-72">
+                            <input type="text" id="adminKycSearchInput" placeholder="Filter by email, name, country, doc ID..." class="w-full bg-[#12161E] border border-white/10 rounded-xl pl-8 pr-3 py-2 text-xs text-white placeholder-[#848E9C] outline-none focus:border-[#0ECB81] transition-colors">
+                            <svg class="w-3.5 h-3.5 text-[#848E9C] absolute left-2.5 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- KYC Submissions Table -->
+                    <div class="overflow-x-auto rounded-xl border border-white/5">
+                        <table class="w-full text-left font-sans text-xs">
+                            <thead>
+                                <tr class="bg-black/40 border-b border-white/10 text-[#848E9C] uppercase text-[11px] font-mono">
+                                    <th class="py-3 px-4">Req #</th>
+                                    <th class="py-3 px-4">User Account</th>
+                                    <th class="py-3 px-4">Legal Name & Country</th>
+                                    <th class="py-3 px-4">Document Details</th>
+                                    <th class="py-3 px-4">Submitted Date</th>
+                                    <th class="py-3 px-4">KYC Status</th>
+                                    <th class="py-3 px-4 text-right">Compliance Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminKycTableBody" class="divide-y divide-white/5">
+                                <tr>
+                                    <td colspan="7" class="py-12 text-center text-[#848E9C]">
+                                        Loading KYC verification applications...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Empty State Notice -->
+                    <div id="kycEmptyNotice" class="hidden text-center py-10 text-[#848E9C] text-xs">
+                        No KYC submissions found matching your filter criteria.
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- General Action Confirmation Modal Dialog -->
+    <div id="confirmActionModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="bg-[#181A20] border border-white/15 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center gap-3">
+                <div id="modalActionIcon" class="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold">
+                    ⚠️
+                </div>
+                <div>
+                    <h3 id="modalActionTitle" class="text-base font-bold text-white">Confirm Compliance Action</h3>
+                    <p class="text-xs text-[#848E9C]">Authorized administrative decision</p>
+                </div>
+            </div>
+
+            <p id="modalActionMessage" class="text-xs text-[#EAECEF] leading-relaxed bg-[#12161E] p-3.5 rounded-xl border border-white/5 font-mono">
+                <!-- Action details inserted dynamically -->
+            </p>
+
+            <div class="flex gap-2.5 pt-2">
+                <button type="button" id="modalCancelBtn" class="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-colors cursor-pointer">
+                    Cancel
+                </button>
+                <button type="button" id="modalProceedBtn" class="flex-1 py-2.5 rounded-xl text-white text-xs font-bold transition-all cursor-pointer">
+                    Confirm Action
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- KYC Document Inspection Modal -->
+    <div id="kycInspectModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto">
+        <div class="bg-[#181A20] border border-white/15 rounded-3xl max-w-3xl w-full p-6 sm:p-7 shadow-2xl space-y-6 my-8 max-h-[90vh] overflow-y-auto">
+            
+            <!-- Modal Header -->
+            <div class="flex items-start justify-between border-b border-white/10 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-400 flex items-center justify-center text-2xl shrink-0">
+                        🪪
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold font-heading text-white">KYC Verification Dossier</h3>
+                        <p class="text-xs text-[#848E9C]">Compliance Document Inspection & Decision Desk</p>
+                    </div>
+                </div>
+                <button type="button" id="kycModalCloseBtn" class="text-white/50 hover:text-white text-2xl font-bold p-1 cursor-pointer transition-colors">&times;</button>
+            </div>
+
+            <!-- User Information Meta Card -->
+            <div class="bg-[#12161E] border border-white/10 rounded-2xl p-4.5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 text-xs">
+                <div>
+                    <span class="text-[#848E9C] text-[10px] uppercase font-mono block">Full Legal Name</span>
+                    <span id="inspectFullName" class="font-bold text-white text-sm">--</span>
+                </div>
+                <div>
+                    <span class="text-[#848E9C] text-[10px] uppercase font-mono block">User Account (Email)</span>
+                    <span id="inspectUserEmail" class="font-semibold text-[#0ECB81]">--</span>
+                </div>
+                <div>
+                    <span class="text-[#848E9C] text-[10px] uppercase font-mono block">Country / Citizenship</span>
+                    <span id="inspectCountry" class="font-semibold text-white">--</span>
+                </div>
+                <div>
+                    <span class="text-[#848E9C] text-[10px] uppercase font-mono block">Document Type</span>
+                    <span id="inspectIdType" class="font-semibold text-white">--</span>
+                </div>
+                <div>
+                    <span class="text-[#848E9C] text-[10px] uppercase font-mono block">Document ID Number</span>
+                    <span id="inspectIdNumber" class="font-mono font-bold text-white">--</span>
+                </div>
+                <div>
+                    <span class="text-[#848E9C] text-[10px] uppercase font-mono block">Date of Birth</span>
+                    <span id="inspectDob" class="font-mono text-white">--</span>
+                </div>
+                <div>
+                    <span class="text-[#848E9C] text-[10px] uppercase font-mono block">Submitted Timestamp</span>
+                    <span id="inspectSubmittedAt" class="font-mono text-[#848E9C]">--</span>
+                </div>
+                <div>
+                    <span class="text-[#848E9C] text-[10px] uppercase font-mono block">Current Status</span>
+                    <span id="inspectStatusBadge">--</span>
+                </div>
+                <div>
+                    <span class="text-[#848E9C] text-[10px] uppercase font-mono block">User Internal ID</span>
+                    <span id="inspectUserId" class="font-mono text-[#848E9C]">--</span>
+                </div>
+            </div>
+
+            <!-- Existing Rejection Reason (if any) -->
+            <div id="inspectRejectionBox" class="hidden bg-rose-500/10 border border-rose-500/30 rounded-xl p-3 text-xs text-rose-300">
+                <strong class="font-bold text-rose-400">Previous Rejection Reason:</strong>
+                <span id="inspectRejectionText" class="ml-1">--</span>
+            </div>
+
+            <!-- Document Visual Inspection Section -->
+            <div class="space-y-2.5">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-[#848E9C] font-mono">Submitted Credentials & Photos</h4>
+                    <span class="text-[11px] text-white/50">Click any image to zoom in high resolution</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                    <!-- Front ID Card -->
+                    <div class="bg-[#12161E] border border-white/10 rounded-2xl p-3 flex flex-col items-center justify-between text-center group">
+                        <div class="text-[11px] font-semibold text-white mb-2 flex items-center gap-1.5">
+                            <span>📄 Front Document</span>
+                        </div>
+                        <div id="inspectFrontWrap" class="w-full h-44 rounded-xl bg-black/50 border border-white/5 flex items-center justify-center overflow-hidden relative cursor-pointer group-hover:border-[#0ECB81]/50 transition-colors">
+                            <img id="inspectFrontImg" src="" alt="Front Document" class="w-full h-full object-contain">
+                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-semibold gap-1">
+                                🔍 Click to Zoom
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Back ID Card -->
+                    <div class="bg-[#12161E] border border-white/10 rounded-2xl p-3 flex flex-col items-center justify-between text-center group">
+                        <div class="text-[11px] font-semibold text-white mb-2 flex items-center gap-1.5">
+                            <span>📄 Back Document</span>
+                        </div>
+                        <div id="inspectBackWrap" class="w-full h-44 rounded-xl bg-black/50 border border-white/5 flex items-center justify-center overflow-hidden relative cursor-pointer group-hover:border-[#0ECB81]/50 transition-colors">
+                            <img id="inspectBackImg" src="" alt="Back Document" class="w-full h-full object-contain">
+                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-semibold gap-1">
+                                🔍 Click to Zoom
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Selfie Card -->
+                    <div class="bg-[#12161E] border border-white/10 rounded-2xl p-3 flex flex-col items-center justify-between text-center group">
+                        <div class="text-[11px] font-semibold text-white mb-2 flex items-center gap-1.5">
+                            <span>🤳 Face Selfie</span>
+                        </div>
+                        <div id="inspectSelfieWrap" class="w-full h-44 rounded-xl bg-black/50 border border-white/5 flex items-center justify-center overflow-hidden relative cursor-pointer group-hover:border-[#0ECB81]/50 transition-colors">
+                            <img id="inspectSelfieImg" src="" alt="Selfie Photo" class="w-full h-full object-contain">
+                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-semibold gap-1">
+                                🔍 Click to Zoom
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compliance Decision Action Form -->
+            <div class="bg-[#12161E] border border-white/10 rounded-2xl p-4.5 space-y-4">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-white font-mono">Administrative Compliance Decision</h4>
+                
+                <div>
+                    <label class="text-[11px] text-[#848E9C] block mb-1">Rejection Reason / Notes (required only when rejecting)</label>
+                    <input type="text" id="inspectRejectReasonInput" placeholder="e.g. ID document is expired, or photo is blurry. Please provide clear copy." class="w-full bg-[#181A20] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-[#848E9C] outline-none focus:border-rose-400 transition-colors font-sans">
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 pt-1">
+                    <button type="button" id="btnInspectApprove" class="flex-1 py-3 rounded-xl bg-[#0ECB81] hover:bg-[#00F59B] text-[#080A0D] text-xs font-extrabold transition-all shadow-[0_0_20px_rgba(14,203,129,0.3)] flex items-center justify-center gap-2 cursor-pointer">
+                        <span>✓ Approve & Unlock Deposit Gateway</span>
+                    </button>
+                    <button type="button" id="btnInspectReject" class="flex-1 py-3 rounded-xl bg-rose-500/15 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/30 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer">
+                        <span>✗ Reject Application</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    <!-- Telegram Configuration Modal -->
+    <div id="telegramConfigModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="bg-[#181A20] border border-white/10 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5">
+            <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center text-xl font-bold">
+                        📲
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white font-heading">Telegram Mobile Push Alerts</h3>
+                        <p class="text-xs text-[#848E9C]">Receive instant alerts for deposits, payouts, & KYC</p>
+                    </div>
+                </div>
+                <button type="button" id="telegramModalCloseBtn" class="text-white/40 hover:text-white text-2xl font-bold cursor-pointer transition-colors">&times;</button>
+            </div>
+
+            <form id="telegramSettingsForm" class="space-y-4">
+                <div class="flex items-center justify-between p-3 rounded-xl bg-[#12161E] border border-white/5">
+                    <div>
+                        <div class="text-xs font-bold text-white">Enable Push Notifications</div>
+                        <div class="text-[11px] text-[#848E9C]">Send alerts directly to your phone</div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="telegramEnabledToggle" class="sr-only peer">
+                        <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0ECB81]"></div>
+                    </label>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-white mb-1.5">Telegram Bot Token</label>
+                    <input type="text" id="telegramBotTokenInput" placeholder="e.g. 7123456789:AAHq_ABCDEF1234..." class="w-full bg-[#12161E] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-blue-500 transition-colors">
+                    <p class="text-[10px] text-[#848E9C] mt-1">From <strong class="text-blue-400">@BotFather</strong> on Telegram via <code class="bg-white/10 px-1 py-0.5 rounded">/newbot</code></p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-white mb-1.5">Your Telegram Chat ID</label>
+                    <input type="text" id="telegramChatIdInput" placeholder="e.g. 123456789" class="w-full bg-[#12161E] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-blue-500 transition-colors">
+                    <p class="text-[10px] text-[#848E9C] mt-1">Your numeric ID from <strong class="text-blue-400">@userinfobot</strong> on Telegram</p>
+                </div>
+
+                <!-- 1-Minute Setup Guide Box -->
+                <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3.5 text-xs text-blue-200/80 space-y-1.5">
+                    <div class="font-bold text-blue-300 flex items-center gap-1.5">
+                        <span>ℹ️ 1-Minute Quick Setup Guide:</span>
+                    </div>
+                    <ol class="list-decimal list-inside space-y-1 text-[11px]">
+                        <li>Open Telegram, search <strong>@BotFather</strong>, and send <code>/newbot</code>.</li>
+                        <li>Follow prompts to name your bot. Copy the <strong>API Token</strong> it gives you.</li>
+                        <li>Search <strong>@userinfobot</strong> on Telegram, click Start to get your <strong>Id</strong> (Chat ID).</li>
+                        <li>Send a message to your new bot, paste the Token & Chat ID above, and save!</li>
+                    </ol>
+                </div>
+
+                <div class="flex items-center gap-3 pt-2">
+                    <button type="button" id="btnTestTelegram" class="flex-1 py-2.5 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 font-bold text-xs border border-blue-500/40 transition-all cursor-pointer">
+                        ⚡ Send Test Message
+                    </button>
+                    <button type="submit" id="btnSaveTelegram" class="flex-1 py-2.5 rounded-xl bg-[#0ECB81] hover:bg-[#00F59B] text-[#080A0D] font-bold text-xs transition-all shadow-[0_0_15px_rgba(14,203,129,0.25)] cursor-pointer">
+                        Save Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Fullscreen Image Lightbox Modal -->
+    <div id="imageLightboxModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 cursor-zoom-out">
+        <div class="relative max-w-5xl max-h-[90vh] flex flex-col items-center">
+            <img id="lightboxImg" src="" alt="Full Resolution Document" class="max-w-full max-h-[85vh] rounded-xl object-contain shadow-2xl border border-white/10">
+            <button type="button" id="lightboxCloseBtn" class="absolute -top-10 right-0 text-white hover:text-rose-400 text-3xl font-bold cursor-pointer transition-colors">&times; Close</button>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="cryptotopToastContainer" class="cryptotop-toast-container"></div>
+
+    <!-- Admin Desk Controller Script -->
+    <script>
+        (function () {
+            'use strict';
+
+            var currentAdminKey = '';
+            var activeDeskTab = 'deposits'; // 'deposits' | 'withdrawals' | 'kyc'
+            
+            // Deposits State
+            var allDeposits = [];
+            var currentDepositStatusFilter = 'ALL';
+            var depositSearchQuery = '';
+
+            // Withdrawals State
+            var allWithdrawals = [];
+            var currentStatusFilter = 'ALL';
+            var searchQuery = '';
+            var pendingActionData = null;
+
+            // KYC State
+            var allKycList = [];
+            var currentKycStatusFilter = 'ALL';
+            var kycSearchQuery = '';
+            var activeInspectKyc = null;
+
+            // DOM Elements: Navigation
+            var authGateBanner = document.getElementById('authGateBanner');
+            var adminDeskArea = document.getElementById('adminDeskArea');
+            var adminKeyForm = document.getElementById('adminKeyForm');
+            var adminKeyInput = document.getElementById('adminKeyInput');
+            var adminStatusBadge = document.getElementById('adminStatusBadge');
+            var btnAdminLogout = document.getElementById('btnAdminLogout');
+            var btnRefreshAll = document.getElementById('btnRefreshAll');
+
+            var tabNavDeposits = document.getElementById('tabNavDeposits');
+            var tabNavWithdrawals = document.getElementById('tabNavWithdrawals');
+            var tabNavKyc = document.getElementById('tabNavKyc');
+            var badgePendingDeposits = document.getElementById('badgePendingDeposits');
+            var badgePendingWithdrawals = document.getElementById('badgePendingWithdrawals');
+            var badgePendingKyc = document.getElementById('badgePendingKyc');
+
+            var depositsDeskSection = document.getElementById('depositsDeskSection');
+            var withdrawalDeskSection = document.getElementById('withdrawalDeskSection');
+            var kycDeskSection = document.getElementById('kycDeskSection');
+
+            // DOM Elements: Deposits Desk
+            var depositsTableBody = document.getElementById('adminDepositsTableBody');
+            var depositEmptyNotice = document.getElementById('depositEmptyNotice');
+            var adminDepositSearchInput = document.getElementById('adminDepositSearchInput');
+            var statDepositPendingCount = document.getElementById('statDepositPendingCount');
+            var statDepositPendingVol = document.getElementById('statDepositPendingVol');
+            var statDepositApprovedCount = document.getElementById('statDepositApprovedCount');
+            var statDepositApprovedVol = document.getElementById('statDepositApprovedVol');
+            var statDepositRejectedCount = document.getElementById('statDepositRejectedCount');
+            var statDepositTotalVol = document.getElementById('statDepositTotalVol');
+            var countDepositAll = document.getElementById('countDepositAll');
+            var countDepositPending = document.getElementById('countDepositPending');
+            var countDepositCompleted = document.getElementById('countDepositCompleted');
+            var countDepositRejected = document.getElementById('countDepositRejected');
+
+            // DOM Elements: Withdrawals Desk
+            var tableBody = document.getElementById('adminWithdrawalsTableBody');
+            var emptyNotice = document.getElementById('emptyNotice');
+            var adminSearchInput = document.getElementById('adminSearchInput');
+            var statPendingCount = document.getElementById('statPendingCount');
+            var statPendingVol = document.getElementById('statPendingVol');
+            var statApprovedCount = document.getElementById('statApprovedCount');
+            var statApprovedVol = document.getElementById('statApprovedVol');
+            var statRejectedCount = document.getElementById('statRejectedCount');
+            var statRejectedVol = document.getElementById('statRejectedVol');
+            var countAll = document.getElementById('countAll');
+            var countPending = document.getElementById('countPending');
+            var countCompleted = document.getElementById('countCompleted');
+            var countRejected = document.getElementById('countRejected');
+
+            // DOM Elements: KYC Desk
+            var kycTableBody = document.getElementById('adminKycTableBody');
+            var kycEmptyNotice = document.getElementById('kycEmptyNotice');
+            var adminKycSearchInput = document.getElementById('adminKycSearchInput');
+            var statKycPendingCount = document.getElementById('statKycPendingCount');
+            var statKycApprovedCount = document.getElementById('statKycApprovedCount');
+            var statKycRejectedCount = document.getElementById('statKycRejectedCount');
+            var statKycTotalCount = document.getElementById('statKycTotalCount');
+            var countKycAll = document.getElementById('countKycAll');
+            var countKycPending = document.getElementById('countKycPending');
+            var countKycVerified = document.getElementById('countKycVerified');
+            var countKycRejected = document.getElementById('countKycRejected');
+
+            // DOM Elements: Confirmation Modal
+            var confirmModal = document.getElementById('confirmActionModal');
+            var modalActionIcon = document.getElementById('modalActionIcon');
+            var modalActionTitle = document.getElementById('modalActionTitle');
+            var modalActionMessage = document.getElementById('modalActionMessage');
+            var modalProceedBtn = document.getElementById('modalProceedBtn');
+            var modalCancelBtn = document.getElementById('modalCancelBtn');
+
+            // DOM Elements: KYC Inspect Modal
+            var kycInspectModal = document.getElementById('kycInspectModal');
+            var kycModalCloseBtn = document.getElementById('kycModalCloseBtn');
+            var inspectFullName = document.getElementById('inspectFullName');
+            var inspectUserEmail = document.getElementById('inspectUserEmail');
+            var inspectCountry = document.getElementById('inspectCountry');
+            var inspectIdType = document.getElementById('inspectIdType');
+            var inspectIdNumber = document.getElementById('inspectIdNumber');
+            var inspectDob = document.getElementById('inspectDob');
+            var inspectSubmittedAt = document.getElementById('inspectSubmittedAt');
+            var inspectStatusBadge = document.getElementById('inspectStatusBadge');
+            var inspectUserId = document.getElementById('inspectUserId');
+            var inspectRejectionBox = document.getElementById('inspectRejectionBox');
+            var inspectRejectionText = document.getElementById('inspectRejectionText');
+            var inspectFrontWrap = document.getElementById('inspectFrontWrap');
+            var inspectFrontImg = document.getElementById('inspectFrontImg');
+            var inspectBackWrap = document.getElementById('inspectBackWrap');
+            var inspectBackImg = document.getElementById('inspectBackImg');
+            var inspectSelfieWrap = document.getElementById('inspectSelfieWrap');
+            var inspectSelfieImg = document.getElementById('inspectSelfieImg');
+            var inspectRejectReasonInput = document.getElementById('inspectRejectReasonInput');
+            var btnInspectApprove = document.getElementById('btnInspectApprove');
+            var btnInspectReject = document.getElementById('btnInspectReject');
+
+            // DOM Elements: Lightbox
+            var imageLightboxModal = document.getElementById('imageLightboxModal');
+            var lightboxImg = document.getElementById('lightboxImg');
+            var lightboxCloseBtn = document.getElementById('lightboxCloseBtn');
+
+            // Toast Helper
+            function showToast(title, message, type) {
+                var container = document.getElementById('cryptotopToastContainer');
+                if (!container) return;
+
+                var toast = document.createElement('div');
+                toast.className = 'cryptotop-toast';
+                var iconColor = type === 'error' ? '#F6465D' : (type === 'info' ? '#38BDF8' : '#0ECB81');
+                var iconSvg = type === 'error' ?
+                    '<svg class="w-5 h-5 shrink-0" style="color: ' + iconColor + '" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' :
+                    '<svg class="w-5 h-5 shrink-0" style="color: ' + iconColor + '" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+
+                toast.innerHTML = iconSvg +
+                    '<div class="flex-1">' +
+                    '<div class="text-xs font-bold font-heading text-white">' + title + '</div>' +
+                    '<div class="text-[11px] text-[#848E9C] mt-0.5 leading-snug">' + message + '</div>' +
+                    '</div>';
+
+                container.appendChild(toast);
+
+                setTimeout(function () {
+                    toast.classList.add('cryptotop-toast--leaving');
+                    setTimeout(function () {
+                        if (toast.parentNode) toast.parentNode.removeChild(toast);
+                    }, 300);
+                }, 3200);
+            }
+
+            function escapeHtml(str) {
+                if (str === null || str === undefined) return '';
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            // Authentication & Initialization
+            function initAdmin() {
+                var params = new URLSearchParams(window.location.search);
+                var keyFromUrl = params.get('admin_key') || params.get('key');
+                var hashPart = window.location.hash ? window.location.hash.substring(1) : '';
+                if (keyFromUrl && hashPart && !keyFromUrl.includes('#')) {
+                    keyFromUrl = keyFromUrl + '#' + hashPart;
+                }
+                var keyFromStorage = sessionStorage.getItem('cryptotop_admin_key');
+
+                var keyToTry = keyFromUrl || keyFromStorage;
+                if (keyToTry) {
+                    verifyAndLoad(keyToTry);
+                } else {
+                    showGate();
+                }
+            }
+
+            function showGate() {
+                authGateBanner.classList.remove('hidden');
+                adminDeskArea.classList.add('hidden');
+                adminStatusBadge.classList.add('hidden');
+            }
+
+            function showDesk() {
+                authGateBanner.classList.add('hidden');
+                adminDeskArea.classList.remove('hidden');
+                adminStatusBadge.classList.remove('hidden');
+            }
+
+            if (adminKeyForm) {
+                adminKeyForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    var key = adminKeyInput ? adminKeyInput.value.trim() : '';
+                    if (!key) return;
+                    verifyAndLoad(key);
+                });
+            }
+
+            if (btnAdminLogout) {
+                btnAdminLogout.addEventListener('click', function () {
+                    sessionStorage.removeItem('cryptotop_admin_key');
+                    document.cookie = 'cryptotop_admin_key=; Path=/; Max-Age=0;';
+                    currentAdminKey = '';
+                    window.location.href = 'index.html';
+                });
+            }
+
+            // Tab Switching: Deposits vs Withdrawals vs KYC
+            function switchDeskTab(tab) {
+                activeDeskTab = tab;
+                var inactiveBtnClass = 'desk-nav-btn px-4 py-2 rounded-lg text-xs font-semibold text-[#848E9C] hover:text-white flex items-center gap-2 transition-all cursor-pointer';
+                var activeBtnClass = 'desk-nav-btn px-4 py-2 rounded-lg text-xs font-bold bg-[#0ECB81] text-[#080A0D] flex items-center gap-2 transition-all cursor-pointer shadow-[0_0_15px_rgba(14,203,129,0.2)]';
+
+                tabNavDeposits.className = inactiveBtnClass;
+                tabNavWithdrawals.className = inactiveBtnClass;
+                tabNavKyc.className = inactiveBtnClass;
+
+                depositsDeskSection.classList.add('hidden');
+                withdrawalDeskSection.classList.add('hidden');
+                kycDeskSection.classList.add('hidden');
+
+                if (tab === 'deposits') {
+                    tabNavDeposits.className = activeBtnClass;
+                    depositsDeskSection.classList.remove('hidden');
+                } else if (tab === 'withdrawals') {
+                    tabNavWithdrawals.className = activeBtnClass;
+                    withdrawalDeskSection.classList.remove('hidden');
+                } else {
+                    tabNavKyc.className = activeBtnClass;
+                    kycDeskSection.classList.remove('hidden');
+                }
+            }
+
+            if (tabNavDeposits) tabNavDeposits.addEventListener('click', function () { switchDeskTab('deposits'); });
+            if (tabNavWithdrawals) tabNavWithdrawals.addEventListener('click', function () { switchDeskTab('withdrawals'); });
+            if (tabNavKyc) tabNavKyc.addEventListener('click', function () { switchDeskTab('kyc'); });
+
+            // Verify Key & Load Data
+            function verifyAndLoad(key) {
+                fetch('/api/admin/deposits', {
+                    headers: { 'X-Admin-Key': key }
+                })
+                .then(function (res) {
+                    if (res.status === 401 || res.status === 403 || res.status === 404) {
+                        throw new Error('Unauthorized');
+                    }
+                    return res.json();
+                })
+                .then(function (data) {
+                    if (data.success) {
+                        currentAdminKey = key;
+                        sessionStorage.setItem('cryptotop_admin_key', key);
+                        showDesk();
+                        allDeposits = data.deposits || [];
+                        updateDepositsDashboard();
+                        loadWithdrawalsQueue();
+                        loadKycQueue();
+                        loadTelegramStatus();
+                        showToast('Access Granted', 'Welcome to CryptoTop Compliance Desk.', 'success');
+                    } else {
+                        throw new Error(data.error || 'Authentication failed');
+                    }
+                })
+                .catch(function (err) {
+                    sessionStorage.removeItem('cryptotop_admin_key');
+                    showGate();
+                    showToast('Access Denied', 'Invalid administrative secret key.', 'error');
+                });
+            }
+
+            // Refresh All Queues
+            function refreshAllQueues() {
+                if (!currentAdminKey) return;
+                loadDepositsQueue();
+                loadWithdrawalsQueue();
+                loadKycQueue();
+                loadTelegramStatus();
+            }
+
+            if (btnRefreshAll) {
+                btnRefreshAll.addEventListener('click', function () {
+                    refreshAllQueues();
+                    showToast('Desk Refreshed', 'Deposits, withdrawals, and KYC queues reloaded.', 'info');
+                });
+            }
+
+            // =========================================================================
+            // 1. DEPOSITS QUEUE LOGIC
+            // =========================================================================
+            function loadDepositsQueue() {
+                if (!currentAdminKey) return;
+                depositsTableBody.innerHTML = '<tr><td colspan="8" class="py-10 text-center text-[#848E9C]">Refreshing deposits queue...</td></tr>';
+
+                fetch('/api/admin/deposits', {
+                    headers: { 'X-Admin-Key': currentAdminKey }
+                })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (data.success) {
+                        allDeposits = data.deposits || [];
+                        updateDepositsDashboard();
+                    } else {
+                        showToast('Failed to Load', data.error || 'Could not fetch deposits.', 'error');
+                    }
+                })
+                .catch(function () {
+                    showToast('Connection Error', 'Failed to reach administrative API.', 'error');
+                });
+            }
+
+            function updateDepositsDashboard() {
+                var pendingCount = 0;
+                var pendingVol = 0.0;
+                var approvedCount = 0;
+                var approvedVol = 0.0;
+                var rejectedCount = 0;
+
+                allDeposits.forEach(function (d) {
+                    var amt = parseFloat(d.amount) || 0.0;
+                    if (d.status === 'PENDING_REVIEW') {
+                        pendingCount++;
+                        pendingVol += amt;
+                    } else if (d.status === 'COMPLETED') {
+                        approvedCount++;
+                        approvedVol += amt;
+                    } else if (d.status === 'REJECTED') {
+                        rejectedCount++;
+                    }
+                });
+
+                if (statDepositPendingCount) statDepositPendingCount.innerText = pendingCount;
+                if (statDepositPendingVol) statDepositPendingVol.innerText = '$' + pendingVol.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                if (statDepositApprovedCount) statDepositApprovedCount.innerText = approvedCount;
+                if (statDepositApprovedVol) statDepositApprovedVol.innerText = '$' + approvedVol.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                if (statDepositRejectedCount) statDepositRejectedCount.innerText = rejectedCount;
+                if (statDepositTotalVol) statDepositTotalVol.innerText = '$' + approvedVol.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                if (countDepositAll) countDepositAll.innerText = allDeposits.length;
+                if (countDepositPending) countDepositPending.innerText = pendingCount;
+                if (countDepositCompleted) countDepositCompleted.innerText = approvedCount;
+                if (countDepositRejected) countDepositRejected.innerText = rejectedCount;
+                if (badgePendingDeposits) badgePendingDeposits.innerText = pendingCount;
+
+                renderDepositsTable();
+            }
+
+            // Deposit Filter Tabs
+            var depFilterButtons = document.querySelectorAll('.dep-filter-tab-btn');
+            depFilterButtons.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    depFilterButtons.forEach(function (b) {
+                        b.className = 'dep-filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all';
+                    });
+                    btn.className = 'dep-filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-bold bg-[#0ECB81] text-[#080A0D] transition-all';
+
+                    currentDepositStatusFilter = btn.dataset.status;
+                    renderDepositsTable();
+                });
+            });
+
+            if (adminDepositSearchInput) {
+                adminDepositSearchInput.addEventListener('input', function (e) {
+                    depositSearchQuery = e.target.value.trim().toLowerCase();
+                    renderDepositsTable();
+                });
+            }
+
+            function renderDepositsTable() {
+                var filtered = allDeposits.filter(function (d) {
+                    var matchStatus = (currentDepositStatusFilter === 'ALL') || (d.status === currentDepositStatusFilter);
+                    var matchQuery = true;
+                    if (depositSearchQuery) {
+                        var emailStr = (d.email || '').toLowerCase();
+                        var txStr = (d.txid || '').toLowerCase();
+                        var addrStr = (d.deposit_address || '').toLowerCase();
+                        var idStr = String(d.id || '').toLowerCase();
+                        var userStr = String(d.user_id || '').toLowerCase();
+                        matchQuery = emailStr.includes(depositSearchQuery) || txStr.includes(depositSearchQuery) || addrStr.includes(depositSearchQuery) || idStr.includes(depositSearchQuery) || userStr.includes(depositSearchQuery);
+                    }
+                    return matchStatus && matchQuery;
+                });
+
+                if (filtered.length === 0) {
+                    depositsTableBody.innerHTML = '';
+                    if (depositEmptyNotice) depositEmptyNotice.classList.remove('hidden');
+                    return;
+                }
+
+                if (depositEmptyNotice) depositEmptyNotice.classList.add('hidden');
+
+                var html = '';
+                filtered.forEach(function (d) {
+                    var statusBadge = '';
+                    if (d.status === 'PENDING_REVIEW') {
+                        statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 font-mono">PENDING REVIEW ⏳</span>';
+                    } else if (d.status === 'COMPLETED') {
+                        statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#0ECB81]/15 text-[#0ECB81] border border-[#0ECB81]/30 font-mono">COMPLETED ✓</span>';
+                    } else if (d.status === 'REJECTED') {
+                        statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30 font-mono">REJECTED ✗</span>';
+                    } else {
+                        statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/10 text-[#848E9C] border border-white/15 font-mono">' + d.status + '</span>';
+                    }
+
+                    var actionsHtml = '';
+                    if (d.status === 'PENDING_REVIEW') {
+                        actionsHtml = '<div class="flex items-center justify-end gap-1.5">' +
+                            '<button type="button" class="btn-deposit-approve px-3 py-1.5 rounded-lg bg-[#0ECB81] hover:bg-[#00F59B] text-[#080A0D] text-[11px] font-bold transition-all shadow-[0_0_10px_rgba(14,203,129,0.2)] cursor-pointer" data-id="' + d.id + '" data-amt="' + d.amount + '" data-email="' + (d.email || 'User') + '">' +
+                            'Approve & Credit' +
+                            '</button>' +
+                            '<button type="button" class="btn-deposit-reject px-3 py-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/30 text-[11px] font-bold transition-all cursor-pointer" data-id="' + d.id + '" data-amt="' + d.amount + '" data-email="' + (d.email || 'User') + '">' +
+                            'Reject' +
+                            '</button>' +
+                            '</div>';
+                    } else if (d.status === 'COMPLETED') {
+                        actionsHtml = '<span class="text-[11px] text-[#0ECB81] font-mono font-medium">Credited to Spot</span>';
+                    } else if (d.status === 'REJECTED') {
+                        actionsHtml = '<span class="text-[11px] text-rose-400 font-mono font-medium">Payment Rejected</span>';
+                    }
+
+                    // Blockchain Explorer Link Builder
+                    var explorerUrl = 'https://bscscan.com';
+                    if (d.network === 'USDT-TRC20') {
+                        explorerUrl = d.txid ? ('https://tronscan.org/#/transaction/' + d.txid) : 'https://tronscan.org';
+                    } else if (d.network === 'USDT-ERC20') {
+                        explorerUrl = d.txid ? ('https://etherscan.io/tx/' + d.txid) : 'https://etherscan.io';
+                    } else if (d.network === 'USDT-SOL') {
+                        explorerUrl = d.txid ? ('https://solscan.io/tx/' + d.txid) : 'https://solscan.io';
+                    } else {
+                        explorerUrl = d.txid ? ('https://bscscan.com/tx/' + d.txid) : 'https://bscscan.com';
+                    }
+
+                    var txDisplay = d.txid ? (d.txid.length > 18 ? (d.txid.slice(0, 10) + '...' + d.txid.slice(-6)) : d.txid) : 'No TxID';
+                    var addrDisplay = d.deposit_address ? (d.deposit_address.length > 20 ? (d.deposit_address.slice(0, 10) + '...' + d.deposit_address.slice(-6)) : d.deposit_address) : 'Auto';
+
+                    html += '<tr class="hover:bg-white/[0.02] transition-colors">' +
+                        '<td class="py-3.5 px-4 font-mono text-white/70 font-semibold">#' + escapeHtml(d.id) + '</td>' +
+                        '<td class="py-3.5 px-4"><div class="font-semibold text-white">' + escapeHtml(d.email || ('User #' + d.user_id)) + '</div><div class="text-[10px] text-[#848E9C]">ID: ' + escapeHtml(d.user_id) + '</div></td>' +
+                        '<td class="py-3.5 px-4 font-mono font-bold text-white text-sm">$' + parseFloat(d.amount).toFixed(2) + ' <span class="text-xs text-[#0ECB81]">USDT</span></td>' +
+                        '<td class="py-3.5 px-4 font-mono text-xs text-[#848E9C]" title="' + escapeHtml(d.deposit_address || '') + '"><div>' + escapeHtml(addrDisplay) + '</div><div class="text-[10px] text-white/40">' + escapeHtml(d.network || 'USDT-BEP20') + '</div></td>' +
+                        '<td class="py-3.5 px-4 font-mono text-xs"><div><a href="' + encodeURI(explorerUrl) + '" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 underline font-mono flex items-center gap-1 inline-flex" title="Verify on Blockchain Explorer">' + escapeHtml(txDisplay) + ' <span class="text-[10px]">↗</span></a></div></td>' +
+                        '<td class="py-3.5 px-4 font-mono text-[11px] text-[#848E9C]">' + escapeHtml(d.created_at || 'Just now') + '</td>' +
+                        '<td class="py-3.5 px-4">' + statusBadge + '</td>' +
+                        '<td class="py-3.5 px-4 text-right">' + actionsHtml + '</td>' +
+                        '</tr>';
+                });
+
+                depositsTableBody.innerHTML = html;
+
+                // Attach Deposit Action Listeners
+                document.querySelectorAll('.btn-deposit-approve').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var id = btn.dataset.id;
+                        var amt = btn.dataset.amt;
+                        var email = btn.dataset.email;
+                        openDepositConfirmModal('approve', id, amt, email);
+                    });
+                });
+
+                document.querySelectorAll('.btn-deposit-reject').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var id = btn.dataset.id;
+                        var amt = btn.dataset.amt;
+                        var email = btn.dataset.email;
+                        openDepositConfirmModal('reject', id, amt, email);
+                    });
+                });
+            }
+
+            function openDepositConfirmModal(action, id, amt, email) {
+                pendingActionData = { type: 'deposit', action: action, id: id, amt: amt, email: email };
+                if (action === 'approve') {
+                    modalActionIcon.className = 'w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold bg-[#0ECB81]/15 text-[#0ECB81]';
+                    modalActionIcon.innerHTML = '✓';
+                    modalActionTitle.innerText = 'Approve Customer Payment & Credit Balance';
+                    modalActionMessage.innerHTML = 'You have verified the on-chain transfer of <strong class="text-white">$' + parseFloat(amt).toFixed(2) + ' USDT</strong> for account <strong class="text-[#0ECB81]">' + email + '</strong>.<br><br>The customer\'s Spot Wallet balance will be immediately credited with the funds.';
+                    modalProceedBtn.className = 'flex-1 py-2.5 rounded-xl bg-[#0ECB81] hover:bg-[#00F59B] text-[#080A0D] text-xs font-bold transition-all shadow-[0_0_15px_rgba(14,203,129,0.3)] cursor-pointer';
+                    modalProceedBtn.innerText = 'Confirm & Credit Balance';
+                } else {
+                    modalActionIcon.className = 'w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold bg-rose-500/15 text-rose-400';
+                    modalActionIcon.innerHTML = '✗';
+                    modalActionTitle.innerText = 'Reject Deposit Payment Proof';
+                    modalActionMessage.innerHTML = 'You are rejecting deposit #' + id + ' for <strong class="text-white">$' + parseFloat(amt).toFixed(2) + ' USDT</strong>.<br><br>The deposit record will be marked as REJECTED and no wallet funds will be credited.';
+                    modalProceedBtn.className = 'flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all shadow-[0_0_15px_rgba(244,63,94,0.3)] cursor-pointer';
+                    modalProceedBtn.innerText = 'Reject Payment';
+                }
+                confirmModal.classList.remove('hidden');
+            }
+
+            // =========================================================================
+            // 2. WITHDRAWALS QUEUE LOGIC
+            // =========================================================================
+            function loadWithdrawalsQueue() {
+                if (!currentAdminKey) return;
+                fetch('/api/admin/withdrawals', {
+                    headers: { 'X-Admin-Key': currentAdminKey }
+                })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (data.success) {
+                        allWithdrawals = data.withdrawals || [];
+                        updateWithdrawalsDashboard();
+                    }
+                })
+                .catch(function () {});
+            }
+
+            function updateWithdrawalsDashboard() {
+                var pendingCount = 0;
+                var pendingVol = 0.0;
+                var approvedCount = 0;
+                var approvedVol = 0.0;
+                var rejectedCount = 0;
+                var rejectedVol = 0.0;
+
+                allWithdrawals.forEach(function (w) {
+                    var amt = parseFloat(w.amount) || 0.0;
+                    if (w.status === 'PENDING_REVIEW') {
+                        pendingCount++;
+                        pendingVol += amt;
+                    } else if (w.status === 'COMPLETED') {
+                        approvedCount++;
+                        approvedVol += amt;
+                    } else if (w.status === 'REJECTED') {
+                        rejectedCount++;
+                        rejectedVol += amt;
+                    }
+                });
+
+                if (statPendingCount) statPendingCount.innerText = pendingCount;
+                if (statPendingVol) statPendingVol.innerText = '$' + pendingVol.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                if (statApprovedCount) statApprovedCount.innerText = approvedCount;
+                if (statApprovedVol) statApprovedVol.innerText = '$' + approvedVol.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                if (statRejectedCount) statRejectedCount.innerText = rejectedCount;
+                if (statRejectedVol) statRejectedVol.innerText = '$' + rejectedVol.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                if (countAll) countAll.innerText = allWithdrawals.length;
+                if (countPending) countPending.innerText = pendingCount;
+                if (countCompleted) countCompleted.innerText = approvedCount;
+                if (countRejected) countRejected.innerText = rejectedCount;
+                if (badgePendingWithdrawals) badgePendingWithdrawals.innerText = pendingCount;
+
+                renderWithdrawalsTable();
+            }
+
+            var filterButtons = document.querySelectorAll('.filter-tab-btn');
+            filterButtons.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    filterButtons.forEach(function (b) {
+                        b.className = 'filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all';
+                    });
+                    btn.className = 'filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-bold bg-[#0ECB81] text-[#080A0D] transition-all';
+
+                    currentStatusFilter = btn.dataset.status;
+                    renderWithdrawalsTable();
+                });
+            });
+
+            if (adminSearchInput) {
+                adminSearchInput.addEventListener('input', function (e) {
+                    searchQuery = e.target.value.trim().toLowerCase();
+                    renderWithdrawalsTable();
+                });
+            }
+
+            function renderWithdrawalsTable() {
+                var filtered = allWithdrawals.filter(function (w) {
+                    var matchStatus = (currentStatusFilter === 'ALL') || (w.status === currentStatusFilter);
+                    var matchQuery = true;
+                    if (searchQuery) {
+                        var emailStr = (w.email || '').toLowerCase();
+                        var destStr = (w.destination || '').toLowerCase();
+                        var idStr = String(w.id);
+                        matchQuery = emailStr.includes(searchQuery) || destStr.includes(searchQuery) || idStr.includes(searchQuery);
+                    }
+                    return matchStatus && matchQuery;
+                });
+
+                if (filtered.length === 0) {
+                    tableBody.innerHTML = '';
+                    if (emptyNotice) emptyNotice.classList.remove('hidden');
+                    return;
+                }
+
+                if (emptyNotice) emptyNotice.classList.add('hidden');
+
+                var html = '';
+                filtered.forEach(function (w) {
+                    var statusBadge = '';
+                    if (w.status === 'PENDING_REVIEW') {
+                        statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 font-mono">PENDING REVIEW ⏳</span>';
+                    } else if (w.status === 'COMPLETED') {
+                        statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#0ECB81]/15 text-[#0ECB81] border border-[#0ECB81]/30 font-mono">COMPLETED ✓</span>';
+                    } else if (w.status === 'REJECTED') {
+                        statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30 font-mono">REJECTED ✗</span>';
+                    } else {
+                        statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/10 text-[#848E9C] border border-white/15 font-mono">' + w.status + '</span>';
+                    }
+
+                    var actionsHtml = '';
+                    if (w.status === 'PENDING_REVIEW') {
+                        actionsHtml = '<div class="flex items-center justify-end gap-1.5">' +
+                            '<button type="button" class="btn-action-approve px-3 py-1.5 rounded-lg bg-[#0ECB81] hover:bg-[#00F59B] text-[#080A0D] text-[11px] font-bold transition-all shadow-[0_0_10px_rgba(14,203,129,0.2)] cursor-pointer" data-id="' + w.id + '" data-amt="' + w.amount + '" data-email="' + (w.email || 'User') + '">' +
+                            'Approve' +
+                            '</button>' +
+                            '<button type="button" class="btn-action-reject px-3 py-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/30 text-[11px] font-bold transition-all cursor-pointer" data-id="' + w.id + '" data-amt="' + w.amount + '" data-email="' + (w.email || 'User') + '">' +
+                            'Reject & Refund' +
+                            '</button>' +
+                            '</div>';
+                    } else if (w.status === 'COMPLETED') {
+                        actionsHtml = '<span class="text-[11px] text-[#0ECB81] font-mono font-medium">Settled & Closed</span>';
+                    } else if (w.status === 'REJECTED') {
+                        actionsHtml = '<span class="text-[11px] text-rose-400 font-mono font-medium">Refunded to Spot</span>';
+                    }
+
+                    var destDisplay = w.destination ? (w.destination.length > 20 ? (w.destination.slice(0, 10) + '...' + w.destination.slice(-8)) : w.destination) : 'N/A';
+
+                    html += '<tr class="hover:bg-white/[0.02] transition-colors">' +
+                        '<td class="py-3.5 px-4 font-mono text-white/70 font-semibold">#' + escapeHtml(w.id) + '</td>' +
+                        '<td class="py-3.5 px-4"><div class="font-semibold text-white">' + escapeHtml(w.email || ('User #' + w.user_id)) + '</div><div class="text-[10px] text-[#848E9C]">ID: ' + escapeHtml(w.user_id) + '</div></td>' +
+                        '<td class="py-3.5 px-4 font-mono font-bold text-white text-sm">$' + parseFloat(w.amount).toFixed(2) + ' <span class="text-xs text-[#0ECB81]">USDT</span></td>' +
+                        '<td class="py-3.5 px-4 font-mono text-xs text-[#848E9C]" title="' + escapeHtml(w.destination || '') + '"><div>' + escapeHtml(destDisplay) + '</div><div class="text-[10px] text-white/40">' + escapeHtml(w.network || 'USDT-TRC20') + '</div></td>' +
+                        '<td class="py-3.5 px-4 font-mono text-[11px] text-[#848E9C]">' + escapeHtml(w.created_at || 'Just now') + '</td>' +
+                        '<td class="py-3.5 px-4">' + statusBadge + '</td>' +
+                        '<td class="py-3.5 px-4 text-right">' + actionsHtml + '</td>' +
+                        '</tr>';
+                });
+
+                tableBody.innerHTML = html;
+
+                document.querySelectorAll('.btn-action-approve').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var id = btn.dataset.id;
+                        var amt = btn.dataset.amt;
+                        var email = btn.dataset.email;
+                        openWithdrawConfirmModal('approve', id, amt, email);
+                    });
+                });
+
+                document.querySelectorAll('.btn-action-reject').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var id = btn.dataset.id;
+                        var amt = btn.dataset.amt;
+                        var email = btn.dataset.email;
+                        openWithdrawConfirmModal('reject', id, amt, email);
+                    });
+                });
+            }
+
+            function openWithdrawConfirmModal(action, id, amt, email) {
+                pendingActionData = { type: 'withdraw', action: action, id: id, amt: amt, email: email };
+                if (action === 'approve') {
+                    modalActionIcon.className = 'w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold bg-[#0ECB81]/15 text-[#0ECB81]';
+                    modalActionIcon.innerHTML = '✓';
+                    modalActionTitle.innerText = 'Approve Customer Withdrawal';
+                    modalActionMessage.innerHTML = 'You are about to authorize the payout of <strong class="text-white">$' + parseFloat(amt).toFixed(2) + ' USDT</strong> for account <strong class="text-[#0ECB81]">' + email + '</strong>.<br><br>The locked funds will be deducted from company custody and the record marked as COMPLETED.';
+                    modalProceedBtn.className = 'flex-1 py-2.5 rounded-xl bg-[#0ECB81] hover:bg-[#00F59B] text-[#080A0D] text-xs font-bold transition-all shadow-[0_0_15px_rgba(14,203,129,0.3)] cursor-pointer';
+                    modalProceedBtn.innerText = 'Authorize Payout';
+                } else {
+                    modalActionIcon.className = 'w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold bg-rose-500/15 text-rose-400';
+                    modalActionIcon.innerHTML = '✗';
+                    modalActionTitle.innerText = 'Reject & Refund Withdrawal';
+                    modalActionMessage.innerHTML = 'You are rejecting withdrawal #' + id + ' for <strong class="text-white">$' + parseFloat(amt).toFixed(2) + ' USDT</strong>.<br><br>The customer\'s locked custody funds will be <strong class="text-rose-400">immediately refunded</strong> back to their spot wallet balance.';
+                    modalProceedBtn.className = 'flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all shadow-[0_0_15px_rgba(244,63,94,0.3)] cursor-pointer';
+                    modalProceedBtn.innerText = 'Reject & Refund Funds';
+                }
+                confirmModal.classList.remove('hidden');
+            }
+
+            // Modal Generic Close & Confirm Actions
+            function closeConfirmModal() {
+                confirmModal.classList.add('hidden');
+                pendingActionData = null;
+            }
+
+            if (modalCancelBtn) modalCancelBtn.addEventListener('click', closeConfirmModal);
+            if (confirmModal) {
+                confirmModal.addEventListener('click', function (e) {
+                    if (e.target === confirmModal) closeConfirmModal();
+                });
+            }
+
+            if (modalProceedBtn) {
+                modalProceedBtn.addEventListener('click', function () {
+                    if (!pendingActionData) return;
+                    var type = pendingActionData.type;
+                    var action = pendingActionData.action;
+                    var id = pendingActionData.id;
+
+                    modalProceedBtn.disabled = true;
+                    modalProceedBtn.innerText = 'Executing...';
+
+                    var endpoint = type === 'deposit' ? '/api/admin/deposits/action' : '/api/admin/withdrawals/action';
+                    var bodyPayload = type === 'deposit' ? { deposit_id: id, action: action } : { id: id, withdrawal_id: id, action: action };
+
+                    fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Admin-Key': currentAdminKey
+                        },
+                        body: JSON.stringify(bodyPayload)
+                    })
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        modalProceedBtn.disabled = false;
+                        closeConfirmModal();
+
+                        if (data.success) {
+                            showToast('Action Successful', data.message || 'Updated request #' + id, 'success');
+                            if (type === 'deposit') {
+                                loadDepositsQueue();
+                            } else {
+                                loadWithdrawalsQueue();
+                            }
+                        } else {
+                            showToast('Action Failed', data.error || 'Could not update request.', 'error');
+                        }
+                    })
+                    .catch(function (err) {
+                        modalProceedBtn.disabled = false;
+                        closeConfirmModal();
+                        showToast('Error', 'Failed to communicate with administrative server.', 'error');
+                    });
+                });
+            }
+
+            // =========================================================================
+            // 3. KYC COMPLIANCE QUEUE LOGIC
+            // =========================================================================
+            function loadKycQueue() {
+                if (!currentAdminKey) return;
+                fetch('/api/admin/kyc', {
+                    headers: { 'X-Admin-Key': currentAdminKey }
+                })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (data.success) {
+                        allKycList = data.verifications || [];
+                        updateKycDashboard();
+                    }
+                })
+                .catch(function () {});
+            }
+
+            function updateKycDashboard() {
+                var pendingCount = 0;
+                var verifiedCount = 0;
+                var rejectedCount = 0;
+
+                allKycList.forEach(function (k) {
+                    if (k.status === 'PENDING_REVIEW') pendingCount++;
+                    else if (k.status === 'VERIFIED') verifiedCount++;
+                    else if (k.status === 'REJECTED') rejectedCount++;
+                });
+
+                if (statKycPendingCount) statKycPendingCount.innerText = pendingCount;
+                if (statKycApprovedCount) statKycApprovedCount.innerText = verifiedCount;
+                if (statKycRejectedCount) statKycRejectedCount.innerText = rejectedCount;
+                if (statKycTotalCount) statKycTotalCount.innerText = allKycList.length;
+
+                if (countKycAll) countKycAll.innerText = allKycList.length;
+                if (countKycPending) countKycPending.innerText = pendingCount;
+                if (countKycVerified) countKycVerified.innerText = verifiedCount;
+                if (countKycRejected) countKycRejected.innerText = rejectedCount;
+                if (badgePendingKyc) badgePendingKyc.innerText = pendingCount;
+
+                renderKycTable();
+            }
+
+            var kycFilterButtons = document.querySelectorAll('.kyc-filter-tab-btn');
+            kycFilterButtons.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    kycFilterButtons.forEach(function (b) {
+                        b.className = 'kyc-filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all';
+                    });
+                    btn.className = 'kyc-filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-bold bg-[#0ECB81] text-[#080A0D] transition-all';
+
+                    currentKycStatusFilter = btn.dataset.status;
+                    renderKycTable();
+                });
+            });
+
+            if (adminKycSearchInput) {
+                adminKycSearchInput.addEventListener('input', function (e) {
+                    kycSearchQuery = e.target.value.trim().toLowerCase();
+                    renderKycTable();
+                });
+            }
+
+            function renderKycTable() {
+                var filtered = allKycList.filter(function (k) {
+                    var matchStatus = (currentKycStatusFilter === 'ALL') || (k.status === currentKycStatusFilter);
+                    var matchQuery = true;
+                    if (kycSearchQuery) {
+                        var emailStr = (k.email || '').toLowerCase();
+                        var nameStr = (k.full_name || '').toLowerCase();
+                        var countryStr = (k.country || '').toLowerCase();
+                        var docStr = (k.id_number || '').toLowerCase();
+                        var idStr = String(k.id || '').toLowerCase();
+                        var userStr = String(k.user_id || '').toLowerCase();
+                        matchQuery = emailStr.includes(kycSearchQuery) || nameStr.includes(kycSearchQuery) || countryStr.includes(kycSearchQuery) || docStr.includes(kycSearchQuery) || idStr.includes(kycSearchQuery) || userStr.includes(kycSearchQuery);
+                    }
+                    return matchStatus && matchQuery;
+                });
+
+                if (filtered.length === 0) {
+                    kycTableBody.innerHTML = '';
+                    if (kycEmptyNotice) kycEmptyNotice.classList.remove('hidden');
+                    return;
+                }
+
+                if (kycEmptyNotice) kycEmptyNotice.classList.add('hidden');
+
+                var html = '';
+                filtered.forEach(function (k) {
+                    var statusBadge = '';
+                    if (k.status === 'PENDING_REVIEW') {
+                        statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 font-mono">PENDING REVIEW ⏳</span>';
+                    } else if (k.status === 'VERIFIED') {
+                        statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#0ECB81]/15 text-[#0ECB81] border border-[#0ECB81]/30 font-mono">VERIFIED ✓</span>';
+                    } else if (k.status === 'REJECTED') {
+                        statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30 font-mono">REJECTED ✗</span>';
+                    } else {
+                        statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/10 text-[#848E9C] border border-white/15 font-mono">' + k.status + '</span>';
+                    }
+
+                    var actionsHtml = '<button type="button" class="btn-inspect-kyc px-3 py-1.5 rounded-lg bg-blue-500/15 hover:bg-blue-500 text-blue-400 hover:text-white border border-blue-500/30 text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1.5 ml-auto" data-id="' + k.id + '">' +
+                        '<span>🔍 Inspect & Review</span>' +
+                        '</button>';
+
+                    html += '<tr class="hover:bg-white/[0.02] transition-colors">' +
+                        '<td class="py-3.5 px-4 font-mono text-white/70 font-semibold">' + escapeHtml(k.id || 'N/A') + '</td>' +
+                        '<td class="py-3.5 px-4"><div class="font-semibold text-white">' + escapeHtml(k.email || ('User #' + k.user_id)) + '</div><div class="text-[10px] text-[#848E9C] font-mono">ID: ' + escapeHtml(k.user_id) + '</div></td>' +
+                        '<td class="py-3.5 px-4"><div class="font-bold text-white text-xs">' + escapeHtml(k.full_name || '--') + '</div><div class="text-[10px] text-white/60">' + escapeHtml(k.country || 'N/A') + '</div></td>' +
+                        '<td class="py-3.5 px-4 font-mono text-xs text-[#848E9C]"><div><strong class="text-white">' + escapeHtml(k.id_type || 'ID') + '</strong>: ' + escapeHtml(k.id_number || '--') + '</div><div class="text-[10px] text-white/40">DOB: ' + escapeHtml(k.dob || '--') + '</div></td>' +
+                        '<td class="py-3.5 px-4 font-mono text-[11px] text-[#848E9C]">' + escapeHtml(k.created_at || 'Just now') + '</td>' +
+                        '<td class="py-3.5 px-4">' + statusBadge + '</td>' +
+                        '<td class="py-3.5 px-4 text-right">' + actionsHtml + '</td>' +
+                        '</tr>';
+                });
+
+                kycTableBody.innerHTML = html;
+
+                document.querySelectorAll('.btn-inspect-kyc').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var kycId = btn.dataset.id;
+                        var kycObj = allKycList.find(function (item) { return item.id === kycId; });
+                        if (kycObj) {
+                            openKycInspectModal(kycObj);
+                        }
+                    });
+                });
+            }
+
+            function openKycInspectModal(k) {
+                activeInspectKyc = k;
+
+                inspectFullName.innerText = k.full_name || '--';
+                inspectUserEmail.innerText = k.email || 'N/A';
+                inspectCountry.innerText = k.country || '--';
+                inspectIdType.innerText = k.id_type || '--';
+                inspectIdNumber.innerText = k.id_number || '--';
+                inspectDob.innerText = k.dob || '--';
+                inspectSubmittedAt.innerText = k.created_at || 'Just now';
+                inspectUserId.innerText = k.user_id || '--';
+
+                if (k.status === 'PENDING_REVIEW') {
+                    inspectStatusBadge.innerHTML = '<span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">PENDING REVIEW ⏳</span>';
+                } else if (k.status === 'VERIFIED') {
+                    inspectStatusBadge.innerHTML = '<span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#0ECB81]/20 text-[#0ECB81] border border-[#0ECB81]/30">VERIFIED ✓</span>';
+                } else if (k.status === 'REJECTED') {
+                    inspectStatusBadge.innerHTML = '<span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">REJECTED ✗</span>';
+                }
+
+                if (k.rejection_reason && k.status === 'REJECTED') {
+                    inspectRejectionBox.classList.remove('hidden');
+                    inspectRejectionText.innerText = k.rejection_reason;
+                } else {
+                    inspectRejectionBox.classList.add('hidden');
+                }
+
+                if (k.front_doc) {
+                    inspectFrontImg.src = k.front_doc;
+                    inspectFrontWrap.style.display = 'flex';
+                } else {
+                    inspectFrontImg.src = '';
+                    inspectFrontWrap.innerHTML = '<span class="text-[#848E9C] text-xs">No image provided</span>';
+                }
+
+                if (k.back_doc) {
+                    inspectBackImg.src = k.back_doc;
+                    inspectBackWrap.style.display = 'flex';
+                } else {
+                    inspectBackImg.src = '';
+                    inspectBackWrap.innerHTML = '<span class="text-[#848E9C] text-xs">No image provided</span>';
+                }
+
+                if (k.selfie) {
+                    inspectSelfieImg.src = k.selfie;
+                    inspectSelfieWrap.style.display = 'flex';
+                } else {
+                    inspectSelfieImg.src = '';
+                    inspectSelfieWrap.innerHTML = '<span class="text-[#848E9C] text-xs">No image provided</span>';
+                }
+
+                inspectRejectReasonInput.value = '';
+                kycInspectModal.classList.remove('hidden');
+            }
+
+            function closeKycInspectModal() {
+                kycInspectModal.classList.add('hidden');
+                activeInspectKyc = null;
+            }
+
+            if (kycModalCloseBtn) kycModalCloseBtn.addEventListener('click', closeKycInspectModal);
+            if (kycInspectModal) {
+                kycInspectModal.addEventListener('click', function (e) {
+                    if (e.target === kycInspectModal) closeKycInspectModal();
+                });
+            }
+
+            function openLightbox(src) {
+                if (!src) return;
+                lightboxImg.src = src;
+                imageLightboxModal.classList.remove('hidden');
+            }
+
+            function closeLightbox() {
+                imageLightboxModal.classList.add('hidden');
+                lightboxImg.src = '';
+            }
+
+            if (inspectFrontWrap) {
+                inspectFrontWrap.addEventListener('click', function () {
+                    if (inspectFrontImg && inspectFrontImg.src) openLightbox(inspectFrontImg.src);
+                });
+            }
+            if (inspectBackWrap) {
+                inspectBackWrap.addEventListener('click', function () {
+                    if (inspectBackImg && inspectBackImg.src) openLightbox(inspectBackImg.src);
+                });
+            }
+            if (inspectSelfieWrap) {
+                inspectSelfieWrap.addEventListener('click', function () {
+                    if (inspectSelfieImg && inspectSelfieImg.src) openLightbox(inspectSelfieImg.src);
+                });
+            }
+            if (lightboxCloseBtn) lightboxCloseBtn.addEventListener('click', closeLightbox);
+            if (imageLightboxModal) {
+                imageLightboxModal.addEventListener('click', function (e) {
+                    if (e.target === imageLightboxModal || e.target === lightboxCloseBtn) closeLightbox();
+                });
+            }
+
+            function executeKycAction(action) {
+                if (!activeInspectKyc) return;
+                var reason = inspectRejectReasonInput ? inspectRejectReasonInput.value.trim() : '';
+
+                if (action === 'reject' && !reason) {
+                    reason = 'Uploaded documents did not meet verification criteria. Please resubmit clear photos.';
+                }
+
+                var btn = action === 'approve' ? btnInspectApprove : btnInspectReject;
+                var originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerText = 'Processing...';
+
+                fetch('/api/admin/kyc/action', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Admin-Key': currentAdminKey
+                    },
+                    body: JSON.stringify({
+                        verification_id: activeInspectKyc.id,
+                        user_id: activeInspectKyc.user_id,
+                        action: action,
+                        reason: reason
+                    })
+                })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+
+                    if (data.success) {
+                        closeKycInspectModal();
+                        showToast('KYC Decision Recorded', data.message || 'User verification updated to ' + data.kyc_status, 'success');
+                        loadKycQueue();
+                    } else {
+                        showToast('Action Failed', data.error || 'Could not update verification status.', 'error');
+                    }
+                })
+                .catch(function () {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                    showToast('Error', 'Failed to reach compliance API.', 'error');
+                });
+            }
+
+            if (btnInspectApprove) {
+                btnInspectApprove.addEventListener('click', function () {
+                    executeKycAction('approve');
+                });
+            }
+
+            if (btnInspectReject) {
+                btnInspectReject.addEventListener('click', function () {
+                    executeKycAction('reject');
+                });
+            }
+
+            // =========================================================================
+            // 4. TELEGRAM PUSH NOTIFICATION SETTINGS LOGIC
+            // =========================================================================
+            var btnTelegramModal = document.getElementById('btnTelegramModal');
+            var telegramConfigModal = document.getElementById('telegramConfigModal');
+            var telegramModalCloseBtn = document.getElementById('telegramModalCloseBtn');
+            var telegramSettingsForm = document.getElementById('telegramSettingsForm');
+            var telegramEnabledToggle = document.getElementById('telegramEnabledToggle');
+            var telegramBotTokenInput = document.getElementById('telegramBotTokenInput');
+            var telegramChatIdInput = document.getElementById('telegramChatIdInput');
+            var btnTestTelegram = document.getElementById('btnTestTelegram');
+            var btnSaveTelegram = document.getElementById('btnSaveTelegram');
+            var telegramStatusDot = document.getElementById('telegramStatusDot');
+
+            function loadTelegramStatus() {
+                if (!currentAdminKey) return;
+                fetch('/api/admin/telegram', {
+                    headers: { 'X-Admin-Key': currentAdminKey }
+                })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (data.success) {
+                        if (telegramEnabledToggle) telegramEnabledToggle.checked = data.enabled;
+                        if (telegramChatIdInput) telegramChatIdInput.value = data.chat_id || '';
+                        if (telegramBotTokenInput && data.has_token) {
+                            telegramBotTokenInput.placeholder = 'Token configured (' + (data.masked_token || '••••••••') + ') - leave blank to keep unchanged';
+                        }
+                        if (telegramStatusDot) {
+                            if (data.enabled && data.has_token) {
+                                telegramStatusDot.className = 'w-2 h-2 rounded-full bg-[#0ECB81] animate-pulse';
+                            } else if (data.has_token) {
+                                telegramStatusDot.className = 'w-2 h-2 rounded-full bg-amber-400';
+                            } else {
+                                telegramStatusDot.className = 'w-2 h-2 rounded-full bg-gray-500';
+                            }
+                        }
+                    }
+                })
+                .catch(function () {});
+            }
+
+            if (btnTelegramModal) {
+                btnTelegramModal.addEventListener('click', function () {
+                    loadTelegramStatus();
+                    telegramConfigModal.classList.remove('hidden');
+                });
+            }
+
+            if (telegramModalCloseBtn) {
+                telegramModalCloseBtn.addEventListener('click', function () {
+                    telegramConfigModal.classList.add('hidden');
+                });
+            }
+
+            if (telegramConfigModal) {
+                telegramConfigModal.addEventListener('click', function (e) {
+                    if (e.target === telegramConfigModal) telegramConfigModal.classList.add('hidden');
+                });
+            }
+
+            if (telegramSettingsForm) {
+                telegramSettingsForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    var botToken = telegramBotTokenInput.value.trim();
+                    var chatId = telegramChatIdInput.value.trim();
+                    var enabled = telegramEnabledToggle.checked;
+
+                    btnSaveTelegram.disabled = true;
+                    btnSaveTelegram.innerText = 'Saving...';
+
+                    fetch('/api/admin/telegram/config', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Admin-Key': currentAdminKey
+                        },
+                        body: JSON.stringify({
+                            bot_token: botToken,
+                            chat_id: chatId,
+                            enabled: enabled
+                        })
+                    })
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        btnSaveTelegram.disabled = false;
+                        btnSaveTelegram.innerText = 'Save Settings';
+                        if (data.success) {
+                            showToast('Telegram Settings Saved', data.message || 'Notification configuration updated.', 'success');
+                            loadTelegramStatus();
+                            telegramConfigModal.classList.add('hidden');
+                        } else {
+                            showToast('Failed to Save', data.error || 'Could not update settings.', 'error');
+                        }
+                    })
+                    .catch(function () {
+                        btnSaveTelegram.disabled = false;
+                        btnSaveTelegram.innerText = 'Save Settings';
+                        showToast('Error', 'Failed to communicate with administrative server.', 'error');
+                    });
+                });
+            }
+
+            if (btnTestTelegram) {
+                btnTestTelegram.addEventListener('click', function () {
+                    btnTestTelegram.disabled = true;
+                    btnTestTelegram.innerText = 'Sending...';
+
+                    fetch('/api/admin/telegram/test', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Admin-Key': currentAdminKey
+                        }
+                    })
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        btnTestTelegram.disabled = false;
+                        btnTestTelegram.innerText = '⚡ Send Test Message';
+                        if (data.success) {
+                            showToast('Test Ping Dispatched', data.message || 'Check your phone for notification.', 'success');
+                        } else {
+                            showToast('Test Failed', data.error || 'Could not deliver test ping.', 'error');
+                        }
+                    })
+                    .catch(function () {
+                        btnTestTelegram.disabled = false;
+                        btnTestTelegram.innerText = '⚡ Send Test Message';
+                        showToast('Error', 'Failed to send test ping.', 'error');
+                    });
+                });
+            }
+
+            // Auto-run on load
+            window.addEventListener('DOMContentLoaded', initAdmin);
+
+        })();
+    </script>
+</body>
+</html>
