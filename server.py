@@ -94,18 +94,12 @@ def send_telegram_alert(message: str):
     except Exception as e:
         print("[TELEGRAM THREAD ERROR]", e)
 
-# Network Deposit Addresses
+# Network Deposit Addresses (TRC20 and BEP20 only)
 NETWORK_ADDRESSES = {
     "USDT-TRC20": {
-        "address": "TXjK9zX8b4Q2YmP5L9dCryptoTopTRC20Vault77",
+        "address": "TBLVoZkfZrderqfv1oJxkQQFn7UeMV3yXo",
         "confirmations": 1,
         "min_deposit": 10.0,
-        "fee": "0.00 USDT"
-    },
-    "USDT-ERC20": {
-        "address": "0x71C92aB9b5c2E8626e27CryptoTopERC20Vault99",
-        "confirmations": 12,
-        "min_deposit": 25.0,
         "fee": "0.00 USDT"
     },
     "USDT-BEP20": {
@@ -113,31 +107,62 @@ NETWORK_ADDRESSES = {
         "confirmations": 15,
         "min_deposit": 10.0,
         "fee": "0.00 USDT"
-    },
-    "USDT-SOL": {
-        "address": "9XzpK47bFm2VqL9CryptoTopSolanaVault33",
-        "confirmations": 32,
-        "min_deposit": 10.0,
-        "fee": "0.00 USDT"
     }
 }
 
 def get_random_deposit_address(network=None):
     """
-    Selects a random deposit receiving address for every transaction
-    from the 15 provided BEP20 company vault addresses.
-    Falls back to the primary BEP20 address if pool is unavailable.
+    Selects a random deposit receiving address for the requested network
+    (USDT-TRC20 from the TRON addresses, or USDT-BEP20 from the BSC addresses).
+    Priority order:
+    1. Environment variables (TRC20_WALLET_ADDRESSES, BEP20_WALLET_ADDRESSES, or WALLET_ADDRESSES_JSON)
+    2. Local wallet_addresses.json file fallback
+    3. Primary configured network address fallback
     """
+    net_key = (network or "USDT-BEP20").upper()
+    if not net_key.startswith("USDT-"):
+        net_key = f"USDT-{net_key}"
+    if net_key not in ("USDT-TRC20", "USDT-BEP20"):
+        net_key = "USDT-BEP20"
+
+    # 1. Check environment variables
+    try:
+        if net_key == "USDT-TRC20":
+            env_trc = os.environ.get("TRC20_WALLET_ADDRESSES", "").strip()
+            if env_trc:
+                addrs = [a.strip() for a in env_trc.split(",") if a.strip()]
+                if addrs:
+                    return random.choice(addrs)
+        elif net_key == "USDT-BEP20":
+            env_bep = os.environ.get("BEP20_WALLET_ADDRESSES", "").strip()
+            if env_bep:
+                addrs = [a.strip() for a in env_bep.split(",") if a.strip()]
+                if addrs:
+                    return random.choice(addrs)
+
+        env_json = os.environ.get("WALLET_ADDRESSES_JSON", "").strip()
+        if env_json:
+            pool = json.loads(env_json)
+            net_pool = pool.get(net_key, [])
+            if net_pool and isinstance(net_pool, list) and len(net_pool) > 0:
+                return random.choice(net_pool)
+    except Exception as e:
+        print("[WALLET POOL] Error parsing addresses from environment:", e)
+
+    # 2. Fallback to local file if present
     try:
         if os.path.exists(WALLET_ADDRESSES_FILE):
             with open(WALLET_ADDRESSES_FILE, 'r', encoding='utf-8') as f:
                 pool = json.load(f)
-                bep20_pool = pool.get("USDT-BEP20", [])
-                if bep20_pool and isinstance(bep20_pool, list) and len(bep20_pool) > 0:
-                    return random.choice(bep20_pool)
+                net_pool = pool.get(net_key, [])
+                if net_pool and isinstance(net_pool, list) and len(net_pool) > 0:
+                    return random.choice(net_pool)
     except Exception as e:
-        print("[WALLET POOL] Error reading addresses:", e)
+        print("[WALLET POOL] Error reading addresses from file:", e)
     
+    # 3. Fallback to configured primary address
+    if net_key == "USDT-TRC20":
+        return "TBLVoZkfZrderqfv1oJxkQQFn7UeMV3yXo"
     return "0x6BdC0219822A3202518230632EE5DC9d71C9b776"
 
 def hash_password(password: str, salt: str = None):
@@ -921,6 +946,13 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             return
 
+        # Security Guard: Block public HTTP downloads of sensitive configuration, db, and source files
+        clean_path = path.lstrip('/').lower()
+        blocked_exts = ('.env', '.db', '.sqlite', '.py', '.json', '.yaml', '.yml', '.md', '.log', '.sh', '.bat')
+        if any(clean_path.endswith(ext) for ext in blocked_exts) or any(part.startswith('.') for part in clean_path.split('/')):
+            self.send_error(404, "File not found")
+            return
+
         # Default static file serving
         return super().do_GET()
 
@@ -1174,7 +1206,12 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 # Dispatch Real-Time Telegram Alert
                 user_obj = self.get_authenticated_user()
                 user_email = user_obj.get("email", user_id) if user_obj else user_id
-                explorer_url = f"https://bscscan.com/tx/{txid}" if ("BEP20" in network or "BSC" in network) else f"TxID: {txid}"
+                if "BEP20" in network or "BSC" in network:
+                    explorer_url = f"https://bscscan.com/tx/{txid}"
+                elif "TRC20" in network or "TRC" in network:
+                    explorer_url = f"https://tronscan.org/#/transaction/{txid}"
+                else:
+                    explorer_url = f"TxID: {txid}"
                 dep_alert = (
                     f"📥 *NEW DEPOSIT PROOF SUBMITTED*\n\n"
                     f"💰 *Amount:* `${amount:,.2f} USDT` ({network})\n"

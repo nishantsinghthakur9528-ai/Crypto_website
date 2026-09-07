@@ -360,19 +360,14 @@
                             <label class="text-[#848E9C] block font-medium">Select Deposit Network</label>
                             <span id="depositKycVerifiedPill" class="hidden text-[10px] text-[#0ECB81] font-mono bg-[#0ECB81]/10 border border-[#0ECB81]/25 px-2 py-0.5 rounded font-bold">✓ KYC Verified</span>
                         </div>
-                        <div class="grid grid-cols-4 gap-1.5">
-                            <button type="button" class="net-select-btn py-2 px-1 rounded-lg border border-[#0ECB81] bg-[#0ECB81]/10 text-white font-bold text-center text-[11px] relative cursor-pointer" data-net="USDT-BEP20">
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" class="net-select-btn py-2.5 px-2 rounded-lg border border-[#0ECB81] bg-[#0ECB81]/10 text-white font-bold text-center text-xs relative cursor-pointer" data-net="USDT-BEP20">
                                 <span>BEP20</span>
-                                <span class="block text-[8px] text-[#0ECB81] font-mono leading-none mt-0.5">Low Fee</span>
+                                <span class="block text-[9px] text-[#0ECB81] font-mono leading-none mt-0.5">BNB Smart Chain</span>
                             </button>
-                            <button type="button" class="net-select-btn py-2 px-1 rounded-lg border border-white/10 bg-white/[0.02] text-[#848E9C] hover:text-white font-medium text-center text-[11px] cursor-pointer" data-net="USDT-TRC20">
+                            <button type="button" class="net-select-btn py-2.5 px-2 rounded-lg border border-white/10 bg-white/[0.02] text-[#848E9C] hover:text-white font-medium text-center text-xs cursor-pointer" data-net="USDT-TRC20">
                                 <span>TRC20</span>
-                            </button>
-                            <button type="button" class="net-select-btn py-2 px-1 rounded-lg border border-white/10 bg-white/[0.02] text-[#848E9C] hover:text-white font-medium text-center text-[11px] cursor-pointer" data-net="USDT-ERC20">
-                                <span>ERC20</span>
-                            </button>
-                            <button type="button" class="net-select-btn py-2 px-1 rounded-lg border border-white/10 bg-white/[0.02] text-[#848E9C] hover:text-white font-medium text-center text-[11px] cursor-pointer" data-net="USDT-SOL">
-                                <span>SOL</span>
+                                <span class="block text-[9px] text-[#848E9C] font-mono leading-none mt-0.5">TRON Network</span>
                             </button>
                         </div>
                     </div>
@@ -453,7 +448,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                         </svg>
                     </button>
-                    <p class="text-[10px] text-center text-[#848E9C]">Once submitted, our compliance desk verifies on-chain receipt on BscScan and credits your balance.</p>
+                    <p class="text-[10px] text-center text-[#848E9C]">Once submitted, our compliance desk verifies on-chain receipt (TronScan / BscScan) and credits your balance.</p>
                 </div>
             </div>
 
@@ -462,11 +457,9 @@
                 <!-- Network Selector Pills -->
                 <div>
                     <label class="text-[#848E9C] block mb-1.5 font-medium">Select Network</label>
-                    <div class="grid grid-cols-4 gap-2">
-                        <button type="button" class="withdraw-net-btn py-2 rounded-xl text-xs font-bold border border-[#0ECB81] bg-[#0ECB81]/10 text-white transition-all shadow-sm" data-net="USDT-TRC20">TRC20</button>
-                        <button type="button" class="withdraw-net-btn py-2 rounded-xl text-xs font-medium border border-white/10 bg-white/[0.02] text-[#848E9C] hover:text-white transition-all" data-net="USDT-ERC20">ERC20</button>
-                        <button type="button" class="withdraw-net-btn py-2 rounded-xl text-xs font-medium border border-white/10 bg-white/[0.02] text-[#848E9C] hover:text-white transition-all" data-net="USDT-BEP20">BEP20</button>
-                        <button type="button" class="withdraw-net-btn py-2 rounded-xl text-xs font-medium border border-white/10 bg-white/[0.02] text-[#848E9C] hover:text-white transition-all" data-net="USDT-SOL">SOL</button>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" class="withdraw-net-btn py-2.5 rounded-xl text-xs font-bold border border-[#0ECB81] bg-[#0ECB81]/10 text-white transition-all shadow-sm" data-net="USDT-TRC20">TRC20 (TRON)</button>
+                        <button type="button" class="withdraw-net-btn py-2.5 rounded-xl text-xs font-medium border border-white/10 bg-white/[0.02] text-[#848E9C] hover:text-white transition-all" data-net="USDT-BEP20">BEP20 (BSC)</button>
                     </div>
                 </div>
 

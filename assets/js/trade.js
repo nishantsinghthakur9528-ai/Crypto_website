@@ -21,10 +21,8 @@
     };
 
     var networkDepositInfo = {
-        "USDT-TRC20": { min: "10.00 USDT", fee: "0.00% ($0.00)" },
-        "USDT-ERC20": { min: "25.00 USDT", fee: "0.00% ($0.00)" },
         "USDT-BEP20": { min: "10.00 USDT", fee: "0.00% ($0.00)" },
-        "USDT-SOL": { min: "10.00 USDT", fee: "0.00% ($0.00)" }
+        "USDT-TRC20": { min: "10.00 USDT", fee: "0.00% ($0.00)" }
     };
     var selectedDepositNetwork = "USDT-TRC20";
 
@@ -577,9 +575,7 @@
 
     var networkNameLabels = {
         'USDT-BEP20': 'BNB Smart Chain (BEP20)',
-        'USDT-TRC20': 'TRON (TRC20)',
-        'USDT-ERC20': 'Ethereum (ERC20)',
-        'USDT-SOL': 'Solana (SPL)'
+        'USDT-TRC20': 'TRON (TRC20)'
     };
 
     function fetchAssignedDepositAddress(network) {
@@ -721,7 +717,7 @@
 
                 if (data.success) {
                     if (depositTxidInput) depositTxidInput.value = '';
-                    showToast('Payment Proof Submitted', 'Our compliance desk will verify your transaction on BscScan and credit your balance.', 'success');
+                    showToast('Payment Proof Submitted', 'Our compliance desk will verify your transaction on TronScan / BscScan and credit your balance.', 'success');
                     switchModalTab('history');
                 } else {
                     if (data.kyc_required) {
@@ -751,14 +747,6 @@
             fee: '1.00 USDT',
             time: '~2-5 Minutes'
         },
-        'USDT-ERC20': {
-            label: 'Destination ERC20 Wallet Address',
-            placeholder: 'Enter your Ethereum (ERC20) USDT address (starts with 0x...)',
-            hint: 'Please ensure the recipient address supports the <strong class="text-white">Ethereum (ERC20)</strong> network.',
-            badge: 'ERC20',
-            fee: '4.50 USDT',
-            time: '~3-8 Minutes'
-        },
         'USDT-BEP20': {
             label: 'Destination BEP20 (BSC) Wallet Address',
             placeholder: 'Enter your BNB Smart Chain (BEP20) USDT address (starts with 0x...)',
@@ -766,14 +754,6 @@
             badge: 'BEP20',
             fee: '0.80 USDT',
             time: '~1-3 Minutes'
-        },
-        'USDT-SOL': {
-            label: 'Destination Solana (SPL) Wallet Address',
-            placeholder: 'Enter your Solana (SPL) USDT address',
-            hint: 'Please ensure the recipient address supports the <strong class="text-white">Solana (SPL)</strong> network.',
-            badge: 'SOL',
-            fee: '1.00 USDT',
-            time: '~1-2 Minutes'
         }
     };
 
