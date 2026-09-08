@@ -571,7 +571,7 @@
     // Deposit Network State & Address Assignment
     var selectedDepositNetwork = 'USDT-BEP20';
     var currentAssignedDepositId = '';
-    var currentAssignedAddress = '';
+    var currentAssignedAddress = '0x6BdC0219822A3202518230632EE5DC9d71C9b776';
 
     var assignedDepositAddress = document.getElementById('assignedDepositAddress');
     var depositQrImg = document.getElementById('depositQrImg');
@@ -585,68 +585,55 @@
         'USDT-TRC20': 'TRON (TRC20)'
     };
 
+    var defaultDepositAddresses = {
+        'USDT-BEP20': '0x6BdC0219822A3202518230632EE5DC9d71C9b776',
+        'USDT-TRC20': 'TBLVoZkfZrderqfv1oJxkQQFn7UeMV3yXo'
+    };
+
     function fetchAssignedDepositAddress(network) {
         selectedDepositNetwork = network || 'USDT-BEP20';
         if (depositNetworkBadge) depositNetworkBadge.innerText = networkNameLabels[selectedDepositNetwork] || selectedDepositNetwork;
 
-        var token = getAuthToken();
+        // Instant display of network deposit address and QR code
+        var instantAddr = defaultDepositAddresses[selectedDepositNetwork] || defaultDepositAddresses['USDT-BEP20'];
+        currentAssignedAddress = instantAddr;
+        if (assignedDepositAddress) assignedDepositAddress.innerText = instantAddr;
+        if (depositQrImg) {
+            depositQrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(instantAddr) + '&bgcolor=FFFFFF&color=0B0E11&margin=2';
+            depositQrImg.classList.remove('hidden');
+        }
         var qrPlaceholder = document.getElementById('depositQrPlaceholder');
+        if (qrPlaceholder) qrPlaceholder.classList.add('hidden');
 
-        if (!token) {
-            if (assignedDepositAddress) {
-                assignedDepositAddress.innerHTML = '<a href="login.html" class="text-[#0ECB81] hover:underline font-bold flex items-center gap-1.5"><span>Please Log In to View Deposit Address</span><span>&rarr;</span></a>';
-            }
-            if (depositQrImg) depositQrImg.classList.add('hidden');
-            if (qrPlaceholder) {
-                qrPlaceholder.classList.remove('hidden');
-                qrPlaceholder.innerHTML = '<span class="text-[10px] text-gray-500 font-mono text-center">Login<br>Required</span>';
-            }
-            return;
-        }
+        var netInfo = networkDepositInfo[selectedDepositNetwork] || networkDepositInfo["USDT-BEP20"];
+        if (minDepDisplay && netInfo) minDepDisplay.innerText = netInfo.min;
 
-        if (assignedDepositAddress) {
-            assignedDepositAddress.innerHTML = '<span class="w-2 h-2 rounded-full bg-[#0ECB81] animate-ping inline-block mr-1.5"></span><span>Generating address...</span>';
-        }
-        if (depositQrImg) depositQrImg.classList.add('hidden');
-        if (qrPlaceholder) {
-            qrPlaceholder.classList.remove('hidden');
-            qrPlaceholder.innerHTML = '<svg class="w-8 h-8 text-gray-300 animate-pulse mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg><span class="text-[9px] text-gray-400 font-mono">Loading QR</span>';
-        }
-
+        // Sync with backend API (works for both authenticated and guest users)
         fetch('/api/deposit/assign-address?network=' + encodeURIComponent(selectedDepositNetwork), {
             headers: getAuthHeaders()
         })
         .then(function (res) { return res.json(); })
         .then(function (data) {
             if (data.success && data.address) {
-                currentAssignedDepositId = data.deposit_id;
+                currentAssignedDepositId = data.deposit_id || '';
                 currentAssignedAddress = data.address;
 
                 if (assignedDepositAddress) assignedDepositAddress.innerText = data.address;
 
                 if (depositQrImg) {
                     var qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(data.address) + '&bgcolor=FFFFFF&color=0B0E11&margin=2';
-                    depositQrImg.onload = function () {
-                        if (qrPlaceholder) qrPlaceholder.classList.add('hidden');
-                        depositQrImg.classList.remove('hidden');
-                    };
+                    depositQrImg.src = qrUrl;
                     depositQrImg.onerror = function () {
-                        // Fallback secondary QR provider
                         depositQrImg.src = 'https://quickchart.io/qr?text=' + encodeURIComponent(data.address) + '&size=180';
                     };
-                    depositQrImg.src = qrUrl;
                 }
 
-                var netInfo = networkDepositInfo[selectedDepositNetwork] || networkDepositInfo["USDT-BEP20"];
-                if (minDepDisplay && netInfo) minDepDisplay.innerText = netInfo.min;
-            } else {
-                if (assignedDepositAddress) {
-                    assignedDepositAddress.innerText = data.error || 'Error loading address';
-                }
+                var netInfoLive = networkDepositInfo[selectedDepositNetwork] || networkDepositInfo["USDT-BEP20"];
+                if (minDepDisplay && netInfoLive) minDepDisplay.innerText = netInfoLive.min;
             }
         })
         .catch(function () {
-            if (assignedDepositAddress) assignedDepositAddress.innerText = 'Failed to load address. Please retry.';
+            // Keep the instant fallback address intact
         });
     }
 
@@ -717,6 +704,15 @@
     // Submit Deposit Payment Proof (Amount + TxID) to Backend API
     if (confirmDepositBtn) {
         confirmDepositBtn.addEventListener('click', function () {
+            var token = getAuthToken();
+            if (!token) {
+                showToast('Login Required', 'Please log in to your account to submit payment proof.', 'error');
+                setTimeout(function () {
+                    window.location.href = 'login.html';
+                }, 1500);
+                return;
+            }
+
             var amtInput = document.getElementById('depositAmountInput');
             var amount = parseFloat(amtInput ? amtInput.value : '0');
             var txid = depositTxidInput ? depositTxidInput.value.trim() : '';

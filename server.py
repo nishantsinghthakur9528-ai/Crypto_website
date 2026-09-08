@@ -559,6 +559,12 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=BASE_DIR, **kwargs)
 
+    def end_headers(self):
+        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
+        super().end_headers()
+
     def _send_json(self, status_code, data):
         body = json.dumps(data, indent=2).encode('utf-8')
         self.send_response(status_code)
@@ -840,9 +846,8 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         # API: Assign Real Deposit Address from Pool
         elif path == '/api/deposit/assign-address':
             user = self.get_authenticated_user()
-            if not user:
-                self._send_json(401, {"success": False, "error": "Please log in to obtain deposit address."})
-                return
+            user_id = user["id"] if user else None
+            user_kyc = user.get("kycStatus", "UNVERIFIED") if user else "UNVERIFIED"
 
             qs = urllib.parse.parse_qs(parsed.query)
             network = qs.get('network', ['USDT-BEP20'])[0]
@@ -855,16 +860,16 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             chosen_address = get_random_deposit_address(network)
             dep_id = f"DEP-{uuid.uuid4().hex[:8].upper()}"
 
-            conn = get_db()
-            c = conn.cursor()
-            c.execute("""
-                INSERT INTO deposits (id, user_id, currency, network, deposit_address, amount, status, created_at)
-                VALUES (?, ?, 'USDT', ?, ?, 0.0, 'INITIATED', datetime('now'))
-            """, (dep_id, user["id"], network, chosen_address))
-            conn.commit()
-            conn.close()
+            if user_id:
+                conn = get_db()
+                c = conn.cursor()
+                c.execute("""
+                    INSERT INTO deposits (id, user_id, currency, network, deposit_address, amount, status, created_at)
+                    VALUES (?, ?, 'USDT', ?, ?, 0.0, 'INITIATED', CURRENT_TIMESTAMP)
+                """, (dep_id, user_id, network, chosen_address))
+                conn.commit()
+                conn.close()
 
-            user_kyc = user.get("kycStatus", "UNVERIFIED")
             self._send_json(200, {
                 "success": True,
                 "deposit_id": dep_id,
@@ -875,7 +880,8 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "confirmations_required": net_info["confirmations"],
                 "fee": net_info["fee"],
                 "kyc_status": user_kyc,
-                "kyc_verified": (user_kyc == "VERIFIED")
+                "kyc_verified": (user_kyc == "VERIFIED"),
+                "authenticated": bool(user_id)
             })
             return
 
@@ -975,7 +981,7 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             if status_filter == 'ALL':
                 c.execute("""
                     SELECT w.id, w.user_id, u.email, u.first_name, u.last_name, w.currency, w.network, 
-                           w.destination_address, w.amount, w.fee, w.status, w.created_at
+                           w.destination_address, w.destination_address AS destination, w.amount, w.fee, w.status, w.created_at
                     FROM withdrawals w
                     LEFT JOIN users u ON w.user_id = u.id
                     ORDER BY w.created_at DESC
@@ -983,7 +989,7 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             else:
                 c.execute("""
                     SELECT w.id, w.user_id, u.email, u.first_name, u.last_name, w.currency, w.network, 
-                           w.destination_address, w.amount, w.fee, w.status, w.created_at
+                           w.destination_address, w.destination_address AS destination, w.amount, w.fee, w.status, w.created_at
                     FROM withdrawals w
                     LEFT JOIN users u ON w.user_id = u.id
                     WHERE w.status = ?
@@ -1047,6 +1053,8 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "count": len(items),
                 "verifications": items
             })
+            return
+
         # API: Admin Get Deposits Queue
         elif path == '/api/admin/deposits':
             admin_key = self.headers.get('X-Admin-Key', '')
