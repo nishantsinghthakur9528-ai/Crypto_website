@@ -701,7 +701,24 @@
         });
     });
 
-    // Submit Deposit Payment Proof (Amount + TxID) to Backend API
+    // Deposit Review Confirmation Modal Logic
+    var depositConfirmDialogModal = document.getElementById('depositConfirmDialogModal');
+    var confirmModalNetwork = document.getElementById('confirmModalNetwork');
+    var confirmModalAmount = document.getElementById('confirmModalAmount');
+    var confirmModalTxid = document.getElementById('confirmModalTxid');
+    var btnCancelDepositReview = document.getElementById('btnCancelDepositReview');
+    var btnProceedDepositSubmit = document.getElementById('btnProceedDepositSubmit');
+    var pendingDepositSubmission = null;
+
+    if (btnCancelDepositReview && depositConfirmDialogModal) {
+        btnCancelDepositReview.addEventListener('click', function () {
+            depositConfirmDialogModal.classList.add('hidden');
+            var amtInput = document.getElementById('depositAmountInput');
+            if (amtInput) amtInput.focus();
+        });
+    }
+
+    // Step 1: Open Review Confirmation Popup
     if (confirmDepositBtn) {
         confirmDepositBtn.addEventListener('click', function () {
             var token = getAuthToken();
@@ -718,7 +735,14 @@
             var txid = depositTxidInput ? depositTxidInput.value.trim() : '';
 
             if (isNaN(amount) || amount <= 0) {
-                showToast('Invalid Amount', 'Please enter a valid deposit amount.', 'error');
+                showToast('Invalid Amount', 'Please enter or select a deposit amount (minimum $10 USDT).', 'error');
+                if (amtInput) amtInput.focus();
+                return;
+            }
+
+            if (amount < 10) {
+                showToast('Minimum Amount', 'Minimum deposit is $10.00 USDT.', 'error');
+                if (amtInput) amtInput.focus();
                 return;
             }
 
@@ -728,43 +752,83 @@
                 return;
             }
 
+            pendingDepositSubmission = {
+                amount: amount,
+                txid: txid,
+                network: selectedDepositNetwork
+            };
+
+            if (confirmModalNetwork) confirmModalNetwork.innerText = networkNameLabels[selectedDepositNetwork] || selectedDepositNetwork;
+            if (confirmModalAmount) confirmModalAmount.innerText = '$' + amount.toFixed(2) + ' USDT';
+            if (confirmModalTxid) confirmModalTxid.innerText = txid;
+
+            if (depositConfirmDialogModal) {
+                depositConfirmDialogModal.classList.remove('hidden');
+            } else {
+                executeDepositSubmission();
+            }
+        });
+    }
+
+    // Step 2: Finalize Submission from Confirmation Dialog
+    if (btnProceedDepositSubmit) {
+        btnProceedDepositSubmit.addEventListener('click', function () {
+            if (depositConfirmDialogModal) depositConfirmDialogModal.classList.add('hidden');
+            executeDepositSubmission();
+        });
+    }
+
+    function executeDepositSubmission() {
+        if (!pendingDepositSubmission) return;
+        var amount = pendingDepositSubmission.amount;
+        var txid = pendingDepositSubmission.txid;
+        var network = pendingDepositSubmission.network;
+
+        if (confirmDepositBtn) {
             confirmDepositBtn.disabled = true;
             confirmDepositBtn.innerText = 'Submitting Proof...';
+        }
 
-            fetch('/api/deposit/submit', {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: jsonStringify({
-                    deposit_id: currentAssignedDepositId,
-                    address: currentAssignedAddress,
-                    amount: amount,
-                    network: selectedDepositNetwork,
-                    txid: txid
-                })
+        fetch('/api/deposit/submit', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: jsonStringify({
+                deposit_id: currentAssignedDepositId,
+                address: currentAssignedAddress,
+                amount: amount,
+                network: network,
+                txid: txid
             })
-            .then(function (res) { return res.json(); })
-            .then(function (data) {
+        })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+            if (confirmDepositBtn) {
                 confirmDepositBtn.disabled = false;
                 confirmDepositBtn.innerText = 'Submit Payment Proof for Verification';
+            }
 
-                if (data.success) {
-                    if (depositTxidInput) depositTxidInput.value = '';
-                    showToast('Payment Proof Submitted', 'Our compliance desk will verify your transaction on TronScan / BscScan and credit your balance.', 'success');
-                    switchModalTab('history');
+            if (data.success) {
+                if (depositTxidInput) depositTxidInput.value = '';
+                var amtInput = document.getElementById('depositAmountInput');
+                if (amtInput) amtInput.value = '';
+                pendingDepositSubmission = null;
+                showToast('Payment Proof Submitted', 'Proof for $' + amount.toFixed(2) + ' USDT received. Our desk will verify your on-chain transfer and credit your balance.', 'success');
+                switchModalTab('history');
+            } else {
+                if (data.kyc_required) {
+                    showToast('KYC Required', data.error || 'Please complete identity verification to unlock deposits.', 'error');
+                    switchModalTab('kyc');
                 } else {
-                    if (data.kyc_required) {
-                        showToast('KYC Required', data.error || 'Please complete identity verification to unlock deposits.', 'error');
-                        switchModalTab('kyc');
-                    } else {
-                        showToast('Submission Failed', data.error || 'Unable to process deposit.', 'error');
-                    }
+                    showToast('Submission Failed', data.error || 'Unable to process deposit.', 'error');
                 }
-            })
-            .catch(function (err) {
+            }
+        })
+        .catch(function () {
+            if (confirmDepositBtn) {
                 confirmDepositBtn.disabled = false;
                 confirmDepositBtn.innerText = 'Submit Payment Proof for Verification';
-                showToast('Network Error', 'Could not reach backend API.', 'error');
-            });
+            }
+            showToast('Network Error', 'Could not reach backend API.', 'error');
         });
     }
 
