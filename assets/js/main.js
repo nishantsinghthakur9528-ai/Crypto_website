@@ -514,21 +514,80 @@
     }
     if (executeSwapBtn) {
         executeSwapBtn.addEventListener('click', function () {
-            var token = swapTargetToken ? swapTargetToken.value : 'BTC';
-            var amt = swapInputReceive ? swapInputReceive.value : '0.0146';
-            showCryptoTopToast('Instant Swap Executed', 'Received ' + amt + ' ' + token + ' with 0% slippage. Balance credited.', 'success');
+            var token = localStorage.getItem('cryptotop_session_token');
+            if (!token) {
+                showCryptoTopToast('Authentication Required', 'Please sign up or log in to swap cryptocurrencies.', 'error');
+                setTimeout(function () {
+                    window.location.href = 'login.html';
+                }, 1400);
+                return;
+            }
+
+            // Check KYC status before allowing swap
+            executeSwapBtn.disabled = true;
+            executeSwapBtn.innerText = 'Verifying Compliance...';
+
+            fetch('/api/kyc/status', {
+                headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+            })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                executeSwapBtn.disabled = false;
+                executeSwapBtn.innerText = 'Execute Instant Swap';
+
+                if (!data.success || data.kyc_status !== 'VERIFIED') {
+                    showCryptoTopToast('KYC Verification Required', 'Level 1 Identity Verification is required to swap cryptocurrencies.', 'error');
+                    setTimeout(function () {
+                        window.location.href = 'trade.html?modal=kyc';
+                    }, 1500);
+                    return;
+                }
+
+                var targetToken = swapTargetToken ? swapTargetToken.value : 'BTC';
+                var amt = swapInputReceive ? swapInputReceive.value : '0.0146';
+                showCryptoTopToast('Instant Swap Executed', 'Received ' + amt + ' ' + targetToken + ' with 0% slippage. Balance credited.', 'success');
+            })
+            .catch(function () {
+                executeSwapBtn.disabled = false;
+                executeSwapBtn.innerText = 'Execute Instant Swap';
+                showCryptoTopToast('Network Error', 'Could not reach compliance server.', 'error');
+            });
         });
+    }
+
+    function updateMainSwapButtonState() {
+        if (!executeSwapBtn) return;
+        var token = localStorage.getItem('cryptotop_session_token');
+        if (!token) {
+            executeSwapBtn.innerHTML = '<span>Log In / Sign Up to Swap</span> <span class="text-base">&rarr;</span>';
+            return;
+        }
+
+        fetch('/api/kyc/status', {
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+        })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+            if (!data.success || data.kyc_status !== 'VERIFIED') {
+                executeSwapBtn.innerHTML = '<span>Verify KYC to Swap</span> <span class="text-base">⚠️</span>';
+            } else {
+                executeSwapBtn.innerHTML = '<span>Execute Instant Swap</span> <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>';
+            }
+        })
+        .catch(function () {});
     }
 
     // Sync wallet balance with backend
     function syncMainWalletBalance() {
         var balEl = document.getElementById('swapUserBalanceDisplay');
         if (!balEl) return;
-        var headers = {};
         var token = localStorage.getItem('cryptotop_session_token');
-        if (token) headers['Authorization'] = 'Bearer ' + token;
+        if (!token) {
+            balEl.innerText = '0.00 USDT (Log In)';
+            return;
+        }
 
-        fetch('/api/wallet/balance', { headers: headers })
+        fetch('/api/wallet/balance', { headers: { 'Authorization': 'Bearer ' + token } })
             .then(function(res) { return res.json(); })
             .then(function(data) {
                 if (data.success) {
@@ -538,6 +597,7 @@
             .catch(function(e) { /* silent */ });
     }
     syncMainWalletBalance();
+    updateMainSwapButtonState();
 
     // Initialize calculation
     updateSwapCalculation();

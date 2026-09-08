@@ -454,53 +454,69 @@
 
             <!-- 2. Withdraw View -->
             <div id="withdrawView" class="flex flex-col gap-4 text-xs" style="display: none;">
-                <!-- Network Selector Pills -->
-                <div>
-                    <label class="text-[#848E9C] block mb-1.5 font-medium">Select Network</label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button type="button" class="withdraw-net-btn py-2.5 rounded-xl text-xs font-bold border border-[#0ECB81] bg-[#0ECB81]/10 text-white transition-all shadow-sm" data-net="USDT-TRC20">TRC20 (TRON)</button>
-                        <button type="button" class="withdraw-net-btn py-2.5 rounded-xl text-xs font-medium border border-white/10 bg-white/[0.02] text-[#848E9C] hover:text-white transition-all" data-net="USDT-BEP20">BEP20 (BSC)</button>
+                <!-- Withdraw KYC Compliance Gate -->
+                <div id="withdrawKycGate" class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-300 flex items-start gap-2.5">
+                    <span class="text-base shrink-0">⚠️</span>
+                    <div class="flex-1 text-xs">
+                        <strong class="text-white block mb-0.5 font-bold">Identity Verification Required</strong>
+                        <span class="text-[#848E9C] text-[11px] block leading-relaxed">Level 1 Identity Verification (KYC) is required before withdrawing cryptocurrency to ensure regulatory compliance and account safety.</span>
+                        <button type="button" id="btnGoToKycFromWithdraw" class="mt-2 py-1.5 px-3 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs transition-all cursor-pointer inline-flex items-center gap-1">
+                            <span>Complete Verification Now</span>
+                            <span>&rarr;</span>
+                        </button>
                     </div>
                 </div>
 
-                <!-- Destination Crypto Address -->
-                <div>
-                    <div class="flex justify-between items-center mb-1">
-                        <label id="withdrawDestLabel" class="text-[#848E9C] block font-medium">Destination TRC20 Wallet Address</label>
-                        <span id="withdrawNetBadge" class="text-[10px] text-[#0ECB81] bg-[#0ECB81]/10 px-1.5 py-0.5 rounded font-mono font-bold">TRC20</span>
+                <!-- Withdraw Form Inputs Container (Locked when unverified) -->
+                <div id="withdrawFormWrap" class="flex flex-col gap-4">
+                    <!-- Network Selector Pills -->
+                    <div>
+                        <label class="text-[#848E9C] block mb-1.5 font-medium">Select Network</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" class="withdraw-net-btn py-2.5 rounded-xl text-xs font-bold border border-[#0ECB81] bg-[#0ECB81]/10 text-white transition-all shadow-sm" data-net="USDT-TRC20">TRC20 (TRON)</button>
+                            <button type="button" class="withdraw-net-btn py-2.5 rounded-xl text-xs font-medium border border-white/10 bg-white/[0.02] text-[#848E9C] hover:text-white transition-all" data-net="USDT-BEP20">BEP20 (BSC)</button>
+                        </div>
                     </div>
-                    <input type="text" id="withdrawDestinationInput" placeholder="Enter your TRON (TRC20) USDT address (starts with T...)" class="w-full bg-[#12161E] border border-white/10 rounded-xl p-3 text-white font-mono text-xs outline-none focus:border-[#0ECB81] transition-colors">
-                    <p id="withdrawAddressHint" class="text-[10px] text-[#848E9C] mt-1">Please ensure the recipient address supports the <strong class="text-white">TRON (TRC20)</strong> network.</p>
-                </div>
 
-                <!-- Withdraw Amount Selection -->
-                <div>
-                    <div class="flex justify-between items-center mb-1">
-                        <label class="text-[#848E9C] block font-medium">Withdraw Amount (USDT)</label>
-                        <span class="text-[11px] text-[#848E9C]">Available: <strong id="withdrawAvailableBal" class="text-white font-mono">$0.00</strong></span>
+                    <!-- Destination Crypto Address -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label id="withdrawDestLabel" class="text-[#848E9C] block font-medium">Destination TRC20 Wallet Address</label>
+                            <span id="withdrawNetBadge" class="text-[10px] text-[#0ECB81] bg-[#0ECB81]/10 px-1.5 py-0.5 rounded font-mono font-bold">TRC20</span>
+                        </div>
+                        <input type="text" id="withdrawDestinationInput" placeholder="Enter your TRON (TRC20) USDT address (starts with T...)" class="w-full bg-[#12161E] border border-white/10 rounded-xl p-3 text-white font-mono text-xs outline-none focus:border-[#0ECB81] transition-colors">
+                        <p id="withdrawAddressHint" class="text-[10px] text-[#848E9C] mt-1">Please ensure the recipient address supports the <strong class="text-white">TRON (TRC20)</strong> network.</p>
                     </div>
-                    <input type="number" id="withdrawAmountInput" value="500" min="10" step="any" class="w-full bg-[#12161E] border border-white/10 rounded-xl p-3 text-white font-mono text-base font-bold outline-none focus:border-[#0ECB81] transition-colors">
-                    
-                    <!-- Quick Amount Preset Pills -->
-                    <div class="grid grid-cols-4 gap-1.5 mt-2">
-                        <button type="button" class="quick-with-amt py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[#848E9C] hover:text-white text-[11px] font-mono transition-colors" data-amt="100">+$100</button>
-                        <button type="button" class="quick-with-amt py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[#848E9C] hover:text-white text-[11px] font-mono transition-colors" data-amt="250">+$250</button>
-                        <button type="button" class="quick-with-amt py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[#848E9C] hover:text-white text-[11px] font-mono transition-colors" data-amt="500">+$500</button>
-                        <button type="button" class="quick-with-amt py-1 rounded-lg bg-[#0ECB81]/10 hover:bg-[#0ECB81]/20 border border-[#0ECB81]/30 text-[#0ECB81] text-[11px] font-mono font-bold transition-colors" data-amt="MAX">MAX</button>
+
+                    <!-- Withdraw Amount Selection -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-[#848E9C] block font-medium">Withdraw Amount (USDT)</label>
+                            <span class="text-[11px] text-[#848E9C]">Available: <strong id="withdrawAvailableBal" class="text-white font-mono">$0.00</strong></span>
+                        </div>
+                        <input type="number" id="withdrawAmountInput" value="500" min="10" step="any" class="w-full bg-[#12161E] border border-white/10 rounded-xl p-3 text-white font-mono text-base font-bold outline-none focus:border-[#0ECB81] transition-colors">
+                        
+                        <!-- Quick Amount Preset Pills -->
+                        <div class="grid grid-cols-4 gap-1.5 mt-2">
+                            <button type="button" class="quick-with-amt py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[#848E9C] hover:text-white text-[11px] font-mono transition-colors" data-amt="100">+$100</button>
+                            <button type="button" class="quick-with-amt py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[#848E9C] hover:text-white text-[11px] font-mono transition-colors" data-amt="250">+$250</button>
+                            <button type="button" class="quick-with-amt py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[#848E9C] hover:text-white text-[11px] font-mono transition-colors" data-amt="500">+$500</button>
+                            <button type="button" class="quick-with-amt py-1 rounded-lg bg-[#0ECB81]/10 hover:bg-[#0ECB81]/20 border border-[#0ECB81]/30 text-[#0ECB81] text-[11px] font-mono font-bold transition-colors" data-amt="MAX">MAX</button>
+                        </div>
                     </div>
-                </div>
 
-                <div class="bg-black/30 p-3 rounded-xl border border-white/5 space-y-1 text-[11px] text-[#848E9C]">
-                    <div class="flex justify-between"><span>Network Fee</span><span id="withdrawFeeDisplay" class="text-white font-mono">1.00 USDT</span></div>
-                    <div class="flex justify-between"><span>Estimated Arrival</span><span id="withdrawTimeDisplay" class="text-[#0ECB81]">~2-5 Minutes</span></div>
-                </div>
+                    <div class="bg-black/30 p-3 rounded-xl border border-white/5 space-y-1 text-[11px] text-[#848E9C]">
+                        <div class="flex justify-between"><span>Network Fee</span><span id="withdrawFeeDisplay" class="text-white font-mono">1.00 USDT</span></div>
+                        <div class="flex justify-between"><span>Estimated Arrival</span><span id="withdrawTimeDisplay" class="text-[#0ECB81]">~2-5 Minutes</span></div>
+                    </div>
 
-                <button type="button" id="confirmWithdrawBtn" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#F6465D] to-red-600 text-white font-bold text-sm hover:brightness-110 transition-all shadow-[0_0_20px_rgba(246,70,93,0.3)] flex items-center justify-center gap-2 mt-1">
-                    <span>Confirm Withdrawal</span>
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                    </svg>
-                </button>
+                    <button type="button" id="confirmWithdrawBtn" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#F6465D] to-red-600 text-white font-bold text-sm hover:brightness-110 transition-all shadow-[0_0_20px_rgba(246,70,93,0.3)] flex items-center justify-center gap-2 mt-1">
+                        <span>Confirm Withdrawal</span>
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <!-- 3. Transaction History View -->

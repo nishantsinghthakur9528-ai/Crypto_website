@@ -1330,13 +1330,21 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self._send_json(401, {"success": False, "error": "Please log in to deposit funds."})
                 return
 
-            # Check KYC status for compliance metadata
+            # Check KYC status for compliance metadata and enforce verification
             conn_chk = get_db()
             c_chk = conn_chk.cursor()
             c_chk.execute("SELECT kyc_status FROM users WHERE id = ?", (user_id,))
             u_row = c_chk.fetchone()
             conn_chk.close()
             kyc_status = u_row["kyc_status"] if u_row and u_row["kyc_status"] else "UNVERIFIED"
+
+            if kyc_status != 'VERIFIED':
+                self._send_json(403, {
+                    "success": False,
+                    "kyc_required": True,
+                    "error": "Identity verification (Level 1 KYC) is required before depositing funds. Please complete verification."
+                })
+                return
 
             amount = float(payload.get("amount", 0.0))
             network = payload.get("network", "USDT-BEP20")
@@ -1446,6 +1454,20 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             conn = get_db()
             try:
                 c = conn.cursor()
+
+                # Check KYC status: strictly require Level 1 VERIFIED before withdrawal
+                c.execute("SELECT kyc_status FROM users WHERE id = ?", (user_id,))
+                u_row = c.fetchone()
+                user_kyc = u_row["kyc_status"] if u_row and u_row["kyc_status"] else "UNVERIFIED"
+                if user_kyc != 'VERIFIED':
+                    conn.close()
+                    self._send_json(403, {
+                        "success": False,
+                        "kyc_required": True,
+                        "error": "Identity verification (Level 1 KYC) is required before requesting withdrawals. Please complete verification."
+                    })
+                    return
+
                 c.execute("SELECT balance, locked FROM wallets WHERE user_id = ?", (user_id,))
                 w_row = c.fetchone()
                 current_bal = w_row["balance"] if w_row else 0.0

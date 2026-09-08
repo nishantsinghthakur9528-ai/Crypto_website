@@ -225,6 +225,9 @@
     var depositKycVerifiedPill = document.getElementById('depositKycVerifiedPill');
     var btnGoToKyc = document.getElementById('btnGoToKyc');
     var btnGoToDeposit = document.getElementById('btnGoToDeposit');
+    var withdrawKycGate = document.getElementById('withdrawKycGate');
+    var withdrawFormWrap = document.getElementById('withdrawFormWrap');
+    var btnGoToKycFromWithdraw = document.getElementById('btnGoToKycFromWithdraw');
 
     var currentKycStatus = 'UNVERIFIED';
 
@@ -268,6 +271,33 @@
     if (subTabDeposits) subTabDeposits.addEventListener('click', function () { switchHistorySubTab('deposits'); });
     if (subTabWithdrawals) subTabWithdrawals.addEventListener('click', function () { switchHistorySubTab('withdrawals'); });
 
+    function updateTradeButtonState() {
+        var btn = document.getElementById('orderSubmitBtn');
+        if (!btn) return;
+        var token = getAuthToken();
+
+        if (!token) {
+            btn.className = 'w-full py-3.5 rounded-xl font-bold text-xs md:text-sm text-black bg-gradient-to-r from-amber-400 to-yellow-500 hover:brightness-110 transition-all flex items-center justify-center gap-1.5 mt-3 cursor-pointer shadow-[0_0_20px_rgba(245,158,11,0.25)]';
+            btn.innerHTML = '<span>Log In / Sign Up to Trade</span> <span class="text-sm">&rarr;</span>';
+            return;
+        }
+
+        if (currentKycStatus !== 'VERIFIED') {
+            btn.className = 'w-full py-3.5 rounded-xl font-bold text-xs md:text-sm text-black bg-gradient-to-r from-amber-500 to-amber-600 hover:brightness-110 transition-all flex items-center justify-center gap-1.5 mt-3 cursor-pointer shadow-[0_0_20px_rgba(245,158,11,0.25)]';
+            btn.innerHTML = '<span>Verify KYC to Unlock Trading</span> <span class="text-sm">⚠️</span>';
+            return;
+        }
+
+        var pairBase = (currentPair && currentPair.base) ? currentPair.base : 'BTC';
+        if (activeSide === 'buy') {
+            btn.className = 'btn btn-primary w-full py-3 text-sm font-bold mt-2';
+            btn.innerText = 'Buy ' + pairBase;
+        } else {
+            btn.className = 'btn btn-danger w-full py-3 text-sm font-bold mt-2';
+            btn.innerText = 'Sell ' + pairBase;
+        }
+    }
+
     function updateKycUI(status, ver) {
         currentKycStatus = status || 'UNVERIFIED';
 
@@ -308,35 +338,61 @@
 
         // Deposit View Gating & Badging
         if (depositKycGate && depositFormWrap) {
-            depositFormWrap.classList.remove('opacity-40', 'pointer-events-none');
-            if (confirmDepositBtn) {
-                confirmDepositBtn.disabled = false;
-                confirmDepositBtn.innerText = 'Submit Payment Proof for Verification';
-            }
-
             if (currentKycStatus === 'VERIFIED') {
                 depositKycGate.classList.add('hidden');
+                depositFormWrap.classList.remove('opacity-40', 'pointer-events-none');
                 if (depositKycVerifiedPill) depositKycVerifiedPill.classList.remove('hidden');
-            } else if (currentKycStatus === 'PENDING_REVIEW') {
-                depositKycGate.classList.remove('hidden');
-                if (depositKycVerifiedPill) depositKycVerifiedPill.classList.add('hidden');
-                if (depositKycGateTitle) depositKycGateTitle.innerText = 'Identity Verification Under Review ⏳';
-                if (depositKycGateDesc) depositKycGateDesc.innerText = 'Your verification application is currently under compliance review. Standard deposits and spot trading are fully active.';
-            } else if (currentKycStatus === 'REJECTED') {
-                depositKycGate.classList.remove('hidden');
-                if (depositKycVerifiedPill) depositKycVerifiedPill.classList.add('hidden');
-                if (depositKycGateTitle) depositKycGateTitle.innerText = 'Identity Verification Needs Attention';
-                if (depositKycGateDesc) depositKycGateDesc.innerText = 'Your previous verification was rejected: ' + ((ver && ver.rejection_reason) ? ver.rejection_reason : 'Please submit updated documents.') + ' You can continue depositing standard limits.';
+                if (confirmDepositBtn) {
+                    confirmDepositBtn.disabled = false;
+                    confirmDepositBtn.innerText = 'Submit Payment Proof for Verification';
+                }
             } else {
-                // UNVERIFIED: Keep gateway open for standard deposits
-                depositKycGate.classList.add('hidden');
+                depositKycGate.classList.remove('hidden');
+                depositFormWrap.classList.add('opacity-40', 'pointer-events-none');
                 if (depositKycVerifiedPill) depositKycVerifiedPill.classList.add('hidden');
+                if (confirmDepositBtn) {
+                    confirmDepositBtn.disabled = true;
+                    confirmDepositBtn.innerText = 'KYC Verification Required to Deposit';
+                }
+
+                if (currentKycStatus === 'PENDING_REVIEW') {
+                    if (depositKycGateTitle) depositKycGateTitle.innerText = 'Identity Verification Under Review ⏳';
+                    if (depositKycGateDesc) depositKycGateDesc.innerText = 'Your verification application is currently under compliance review. Deposits and trading will activate once approved.';
+                } else if (currentKycStatus === 'REJECTED') {
+                    if (depositKycGateTitle) depositKycGateTitle.innerText = 'Identity Verification Needs Attention ✗';
+                    if (depositKycGateDesc) depositKycGateDesc.innerText = 'Your previous verification was rejected: ' + ((ver && ver.rejection_reason) ? ver.rejection_reason : 'Please submit updated documents.') + ' Re-submission required to unlock deposits and trading.';
+                } else {
+                    if (depositKycGateTitle) depositKycGateTitle.innerText = 'Identity Verification (KYC) Required ⚠️';
+                    if (depositKycGateDesc) depositKycGateDesc.innerText = 'Under international compliance regulations, Level 1 Identity Verification is required before depositing digital assets into your Spot Wallet.';
+                }
             }
 
             if (!currentAssignedAddress) {
                 fetchAssignedDepositAddress(selectedDepositNetwork);
             }
         }
+
+        // Withdraw View Gating
+        if (withdrawKycGate && withdrawFormWrap) {
+            if (currentKycStatus === 'VERIFIED') {
+                withdrawKycGate.classList.add('hidden');
+                withdrawFormWrap.classList.remove('opacity-40', 'pointer-events-none');
+                if (confirmWithdrawBtn) {
+                    confirmWithdrawBtn.disabled = false;
+                    confirmWithdrawBtn.innerText = 'Confirm Withdrawal';
+                }
+            } else {
+                withdrawKycGate.classList.remove('hidden');
+                withdrawFormWrap.classList.add('opacity-40', 'pointer-events-none');
+                if (confirmWithdrawBtn) {
+                    confirmWithdrawBtn.disabled = true;
+                    confirmWithdrawBtn.innerText = 'KYC Verification Required to Withdraw';
+                }
+            }
+        }
+
+        // Synchronize Spot Trading Terminal CTA button state
+        updateTradeButtonState();
 
         // KYC Tab Views
         var kycStatusTag = document.getElementById('kycStatusTag');
@@ -565,6 +621,7 @@
     if (tabHistoryBtn) tabHistoryBtn.addEventListener('click', function () { switchModalTab('history'); });
     if (tabKycBtn) tabKycBtn.addEventListener('click', function () { switchModalTab('kyc'); });
     if (btnGoToKyc) btnGoToKyc.addEventListener('click', function () { switchModalTab('kyc'); });
+    if (btnGoToKycFromWithdraw) btnGoToKycFromWithdraw.addEventListener('click', function () { switchModalTab('kyc'); });
     if (btnGoToDeposit) btnGoToDeposit.addEventListener('click', function () { switchModalTab('deposit'); });
     if (headerKycBadge) headerKycBadge.addEventListener('click', function () { openWalletModal('kyc'); });
 
@@ -727,6 +784,12 @@
                 setTimeout(function () {
                     window.location.href = 'login.html';
                 }, 1500);
+                return;
+            }
+
+            if (currentKycStatus !== 'VERIFIED') {
+                showToast('KYC Verification Required', 'Level 1 Identity Verification is required before submitting deposits.', 'error');
+                switchModalTab('kyc');
                 return;
             }
 
@@ -906,6 +969,21 @@
     // Submit Withdrawal to Backend API
     if (confirmWithdrawBtn) {
         confirmWithdrawBtn.addEventListener('click', function () {
+            var token = getAuthToken();
+            if (!token) {
+                showToast('Login Required', 'Please log in to request a withdrawal.', 'error');
+                setTimeout(function () {
+                    window.location.href = 'login.html';
+                }, 1500);
+                return;
+            }
+
+            if (currentKycStatus !== 'VERIFIED') {
+                showToast('KYC Verification Required', 'Level 1 Identity Verification is required before withdrawing.', 'error');
+                switchModalTab('kyc');
+                return;
+            }
+
             var amtInput = document.getElementById('withdrawAmountInput');
             var destInput = document.getElementById('withdrawDestinationInput');
             var amount = parseFloat(amtInput ? amtInput.value : '0');
@@ -1152,10 +1230,7 @@
                 '<span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-[#0ECB81]/15 text-[#0ECB81] border border-[#0ECB81]/30">0% Maker Fee</span>';
         }
 
-        var submitBtn = document.getElementById('orderSubmitBtn');
-        if (submitBtn) {
-            submitBtn.innerText = (activeSide === 'buy' ? 'Buy ' : 'Sell ') + currentPair.base;
-        }
+        updateTradeButtonState();
 
         updatePriceDisplay(currentPrice);
         update24hStats();
@@ -1303,20 +1378,14 @@
             activeSide = 'buy';
             btnBuyTab.className = 'btn btn-primary flex-1 py-2 text-sm font-semibold';
             btnSellTab.className = 'btn btn-hollow flex-1 py-2 text-sm font-semibold';
-            if (orderSubmitBtn) {
-                orderSubmitBtn.className = 'btn btn-primary w-full py-3 text-sm font-bold mt-4';
-                orderSubmitBtn.innerText = 'Buy ' + currentPair.base;
-            }
+            updateTradeButtonState();
         });
 
         btnSellTab.addEventListener('click', function () {
             activeSide = 'sell';
             btnSellTab.className = 'btn btn-danger flex-1 py-2 text-sm font-semibold';
             btnBuyTab.className = 'btn btn-hollow flex-1 py-2 text-sm font-semibold';
-            if (orderSubmitBtn) {
-                orderSubmitBtn.className = 'btn btn-danger w-full py-3 text-sm font-bold mt-4';
-                orderSubmitBtn.innerText = 'Sell ' + currentPair.base;
-            }
+            updateTradeButtonState();
         });
     }
 
@@ -1327,6 +1396,22 @@
     if (tradeForm) {
         tradeForm.addEventListener('submit', function (e) {
             e.preventDefault();
+
+            var token = getAuthToken();
+            if (!token) {
+                showToast('Authentication Required', 'Please sign up or log in to place spot orders.', 'error');
+                setTimeout(function () {
+                    window.location.href = 'login.html';
+                }, 1200);
+                return;
+            }
+
+            if (currentKycStatus !== 'VERIFIED') {
+                showToast('KYC Verification Required', 'Level 1 Identity Verification is required to trade cryptocurrency on the spot exchange.', 'error');
+                openWalletModal('kyc');
+                return;
+            }
+
             var priceInput = document.getElementById('orderPrice');
             var amountInput = document.getElementById('orderAmount');
             var price = parseFloat(priceInput ? priceInput.value : currentPrice);
@@ -1390,6 +1475,7 @@
         startLiveTicks();
         fetchWalletBalance();
         fetchKycStatus();
+        updateTradeButtonState();
 
         if (urlParams.get('modal') === 'deposit') {
             setTimeout(function () { openWalletModal('deposit'); }, 400);
