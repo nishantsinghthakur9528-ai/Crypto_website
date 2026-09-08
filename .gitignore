@@ -7,4 +7,3 @@ __pycache__/
 scratch/
 .DS_Store
 Thumbs.db
-wallet_addresses.json

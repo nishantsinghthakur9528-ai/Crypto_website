@@ -375,7 +375,12 @@
                     <!-- Assigned Company Deposit Address & QR Showcase Card -->
                     <div class="bg-black/40 p-4 rounded-xl border border-white/10 flex flex-col gap-3">
                         <div class="flex justify-between items-center">
-                            <span class="text-[11px] text-[#848E9C] font-medium">Assigned Payment Address</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[11px] text-[#848E9C] font-medium">Assigned Payment Address</span>
+                                <button type="button" id="btnRefreshDepositAddress" class="text-[10px] text-[#0ECB81] hover:text-white flex items-center gap-1 cursor-pointer bg-[#0ECB81]/10 hover:bg-[#0ECB81]/20 px-2 py-0.5 rounded border border-[#0ECB81]/25 transition-all" title="Generate another random vault address for this network">
+                                    <span>🔄</span> <span>New Address</span>
+                                </button>
+                            </div>
                             <span id="depositNetworkBadge" class="text-[10px] text-[#0ECB81] font-bold font-mono bg-[#0ECB81]/10 px-2 py-0.5 rounded border border-[#0ECB81]/20">
                                 BNB Smart Chain (BEP20)
                             </span>

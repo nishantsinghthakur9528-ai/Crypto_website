@@ -152,15 +152,10 @@ DEFAULT_TRC20_VAULTS = [
     "TCiJ9znvnM1vy1AE1cowdECtUYPbj48GWt"
 ]
 
-def get_random_deposit_address(network=None):
+def get_deposit_address_pool(network=None):
     """
-    Selects a random deposit receiving address for the requested network
-    (USDT-TRC20 from the TRON addresses, or USDT-BEP20 from the BSC addresses).
-    Priority order:
-    1. Environment variables (TRC20_WALLET_ADDRESSES, BEP20_WALLET_ADDRESSES, or WALLET_ADDRESSES_JSON)
-    2. Local wallet_addresses.json file fallback
-    3. wallet_addresses.example.json fallback
-    4. Built-in 15 rotating vault pools
+    Returns the complete list of unique vault deposit addresses available for the requested network.
+    Aggregates built-in vaults, local configuration files, and environment overrides.
     """
     net_key = (network or "USDT-BEP20").upper()
     if not net_key.startswith("USDT-"):
@@ -168,46 +163,70 @@ def get_random_deposit_address(network=None):
     if net_key not in ("USDT-TRC20", "USDT-BEP20"):
         net_key = "USDT-BEP20"
 
-    # 1. Check environment variables
-    try:
-        if net_key == "USDT-TRC20":
-            env_trc = os.environ.get("TRC20_WALLET_ADDRESSES", "").strip()
-            if env_trc:
-                addrs = [a.strip() for a in env_trc.split(",") if a.strip()]
-                if addrs:
-                    return random.choice(addrs)
-        elif net_key == "USDT-BEP20":
-            env_bep = os.environ.get("BEP20_WALLET_ADDRESSES", "").strip()
-            if env_bep:
-                addrs = [a.strip() for a in env_bep.split(",") if a.strip()]
-                if addrs:
-                    return random.choice(addrs)
+    pool_set = set()
+    # 1. Built-in defaults
+    if net_key == "USDT-TRC20":
+        pool_set.update(DEFAULT_TRC20_VAULTS)
+    else:
+        pool_set.update(DEFAULT_BEP20_VAULTS)
 
-        env_json = os.environ.get("WALLET_ADDRESSES_JSON", "").strip()
-        if env_json:
-            pool = json.loads(env_json)
-            net_pool = pool.get(net_key, [])
-            if net_pool and isinstance(net_pool, list) and len(net_pool) > 0:
-                return random.choice(net_pool)
-    except Exception as e:
-        print("[WALLET POOL] Error parsing addresses from environment:", e)
-
-    # 2. Fallback to local file if present
+    # 2. Local config files (wallet_addresses.json and wallet_addresses.example.json)
     for candidate_file in [WALLET_ADDRESSES_FILE, os.path.join(BASE_DIR, "wallet_addresses.example.json")]:
         try:
             if os.path.exists(candidate_file):
                 with open(candidate_file, 'r', encoding='utf-8') as f:
-                    pool = json.load(f)
-                    net_pool = pool.get(net_key, [])
-                    if net_pool and isinstance(net_pool, list) and len(net_pool) > 0:
-                        return random.choice(net_pool)
+                    data = json.load(f)
+                    items = data.get(net_key, [])
+                    if isinstance(items, list):
+                        for a in items:
+                            if isinstance(a, str) and a.strip():
+                                pool_set.add(a.strip())
         except Exception as e:
-            print(f"[WALLET POOL] Error reading addresses from {candidate_file}:", e)
-    
-    # 3. Fallback to built-in vault pools
-    if net_key == "USDT-TRC20":
-        return random.choice(DEFAULT_TRC20_VAULTS)
-    return random.choice(DEFAULT_BEP20_VAULTS)
+            print(f"[WALLET POOL] Notice: could not read {candidate_file}:", e)
+
+    # 3. Environment variables
+    try:
+        if net_key == "USDT-TRC20":
+            env_trc = os.environ.get("TRC20_WALLET_ADDRESSES", "").strip()
+            if env_trc:
+                for a in env_trc.split(","):
+                    if a.strip():
+                        pool_set.add(a.strip())
+        elif net_key == "USDT-BEP20":
+            env_bep = os.environ.get("BEP20_WALLET_ADDRESSES", "").strip()
+            if env_bep:
+                for a in env_bep.split(","):
+                    if a.strip():
+                        pool_set.add(a.strip())
+
+        env_json = os.environ.get("WALLET_ADDRESSES_JSON", "").strip()
+        if env_json:
+            data = json.loads(env_json)
+            items = data.get(net_key, [])
+            if isinstance(items, list):
+                for a in items:
+                    if isinstance(a, str) and a.strip():
+                        pool_set.add(a.strip())
+    except Exception as e:
+        print("[WALLET POOL] Notice: could not parse environment address overrides:", e)
+
+    valid_pool = sorted(list(pool_set))
+    if not valid_pool:
+        valid_pool = list(DEFAULT_TRC20_VAULTS if net_key == "USDT-TRC20" else DEFAULT_BEP20_VAULTS)
+    return valid_pool
+
+def get_random_deposit_address(network=None, exclude_address=None):
+    """
+    Selects a random deposit receiving address for the requested method:
+    - USDT-TRC20: randomly selected from the 10+ TRON vault pool (starts with T...)
+    - USDT-BEP20: randomly selected from the 15+ BSC vault pool (starts with 0x...)
+    Optionally avoids picking exclude_address when refreshing or generating a new address.
+    """
+    pool = get_deposit_address_pool(network)
+    if exclude_address and len(pool) > 1 and exclude_address in pool:
+        candidates = [a for a in pool if a != exclude_address]
+        return random.choice(candidates)
+    return random.choice(pool)
 
 def hash_password(password: str, salt: str = None):
     if not salt:
@@ -921,8 +940,9 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             if network not in NETWORK_ADDRESSES:
                 network = "USDT-BEP20"
 
+            exclude_prev = qs.get('prev_address', [None])[0]
             net_info = NETWORK_ADDRESSES.get(network, NETWORK_ADDRESSES["USDT-BEP20"])
-            chosen_address = get_random_deposit_address(network)
+            chosen_address = get_random_deposit_address(network, exclude_address=exclude_prev)
             dep_id = f"DEP-{uuid.uuid4().hex[:8].upper()}"
 
             conn = get_db()
@@ -981,8 +1001,9 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             network = qs.get('network', ['USDT-BEP20'])[0]
             if not network.startswith("USDT-"):
                 network = f"USDT-{network}"
+            exclude_prev = qs.get('prev_address', [None])[0]
             net_info = NETWORK_ADDRESSES.get(network, NETWORK_ADDRESSES["USDT-BEP20"])
-            chosen_address = get_random_deposit_address(network)
+            chosen_address = get_random_deposit_address(network, exclude_address=exclude_prev)
             self._send_json(200, {
                 "success": True,
                 "network": network,

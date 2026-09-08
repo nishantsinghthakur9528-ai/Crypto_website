@@ -722,7 +722,9 @@
         'USDT-TRC20': 'TRON (TRC20)'
     };
 
-    function fetchAssignedDepositAddress(network) {
+    var btnRefreshDepositAddress = document.getElementById('btnRefreshDepositAddress');
+
+    function fetchAssignedDepositAddress(network, forceNew) {
         selectedDepositNetwork = network || 'USDT-BEP20';
         if (depositNetworkBadge) depositNetworkBadge.innerText = networkNameLabels[selectedDepositNetwork] || selectedDepositNetwork;
 
@@ -742,7 +744,12 @@
         var netInfo = networkDepositInfo[selectedDepositNetwork] || networkDepositInfo["USDT-BEP20"];
         if (minDepDisplay && netInfo) minDepDisplay.innerText = netInfo.min;
 
-        fetch('/api/deposit/assign-address?network=' + encodeURIComponent(selectedDepositNetwork), {
+        var url = '/api/deposit/assign-address?network=' + encodeURIComponent(selectedDepositNetwork) + '&_t=' + Date.now();
+        if (forceNew && currentAssignedAddress) {
+            url += '&prev_address=' + encodeURIComponent(currentAssignedAddress);
+        }
+
+        fetch(url, {
             headers: getAuthHeaders()
         })
         .then(function (res) { return res.json(); })
@@ -771,6 +778,14 @@
             }
         })
         .catch(function () {});
+    }
+
+    if (btnRefreshDepositAddress) {
+        btnRefreshDepositAddress.addEventListener('click', function () {
+            if (currentKycStatus !== 'VERIFIED') return;
+            fetchAssignedDepositAddress(selectedDepositNetwork, true);
+            showToast('New Address Assigned', 'Assigned a fresh random vault address from the ' + (networkNameLabels[selectedDepositNetwork] || selectedDepositNetwork) + ' pool.', 'success');
+        });
     }
 
     // Copy Assigned Address to Clipboard
@@ -824,7 +839,7 @@
             btn.classList.remove('border-white/10', 'bg-white/[0.02]', 'text-[#848E9C]', 'font-medium');
 
             var net = btn.dataset.net;
-            fetchAssignedDepositAddress(net);
+            fetchAssignedDepositAddress(net, true);
         });
     });
 
