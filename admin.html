@@ -507,6 +507,16 @@
                 <!-- Action details inserted dynamically -->
             </p>
 
+            <!-- Editable Credit Amount Field for Correcting Customer Deposit Typos -->
+            <div id="modalAmountOverrideWrap" class="hidden space-y-1.5 bg-[#12161E] p-3.5 rounded-xl border border-[#0ECB81]/30">
+                <label class="text-[11px] font-bold text-[#0ECB81] flex items-center justify-between">
+                    <span>Approved Amount to Credit (USDT):</span>
+                    <span class="text-[10px] text-white/50 font-mono">Editable</span>
+                </label>
+                <input type="number" id="modalDepositCreditAmount" step="any" min="0.01" class="w-full bg-black/60 border border-white/10 rounded-lg p-2.5 text-white font-mono text-sm font-bold outline-none focus:border-[#0ECB81] transition-colors">
+                <p class="text-[10px] text-[#848E9C]">Adjust this value if the customer entered a typo (e.g. change 110 to 10).</p>
+            </div>
+
             <div class="flex gap-2.5 pt-2">
                 <button type="button" id="modalCancelBtn" class="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-colors cursor-pointer">
                     Cancel
@@ -822,6 +832,8 @@
             var modalActionMessage = document.getElementById('modalActionMessage');
             var modalProceedBtn = document.getElementById('modalProceedBtn');
             var modalCancelBtn = document.getElementById('modalCancelBtn');
+            var modalAmountOverrideWrap = document.getElementById('modalAmountOverrideWrap');
+            var modalDepositCreditAmount = document.getElementById('modalDepositCreditAmount');
 
             // DOM Elements: KYC Inspect Modal
             var kycInspectModal = document.getElementById('kycInspectModal');
@@ -1202,13 +1214,16 @@
             function openDepositConfirmModal(action, id, amt, email) {
                 pendingActionData = { type: 'deposit', action: action, id: id, amt: amt, email: email };
                 if (action === 'approve') {
+                    if (modalAmountOverrideWrap) modalAmountOverrideWrap.classList.remove('hidden');
+                    if (modalDepositCreditAmount) modalDepositCreditAmount.value = parseFloat(amt) || '';
                     modalActionIcon.className = 'w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold bg-[#0ECB81]/15 text-[#0ECB81]';
                     modalActionIcon.innerHTML = '✓';
                     modalActionTitle.innerText = 'Approve Customer Payment & Credit Balance';
-                    modalActionMessage.innerHTML = 'You have verified the on-chain transfer of <strong class="text-white">$' + parseFloat(amt).toFixed(2) + ' USDT</strong> for account <strong class="text-[#0ECB81]">' + email + '</strong>.<br><br>The customer\'s Spot Wallet balance will be immediately credited with the funds.';
+                    modalActionMessage.innerHTML = 'You have verified the on-chain transfer for account <strong class="text-[#0ECB81]">' + email + '</strong>.<br><br>Original submitted proof: <strong class="text-white">$' + parseFloat(amt).toFixed(2) + ' USDT</strong>. Confirm or edit the actual credited amount below.';
                     modalProceedBtn.className = 'flex-1 py-2.5 rounded-xl bg-[#0ECB81] hover:bg-[#00F59B] text-[#080A0D] text-xs font-bold transition-all shadow-[0_0_15px_rgba(14,203,129,0.3)] cursor-pointer';
                     modalProceedBtn.innerText = 'Confirm & Credit Balance';
                 } else {
+                    if (modalAmountOverrideWrap) modalAmountOverrideWrap.classList.add('hidden');
                     modalActionIcon.className = 'w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold bg-rose-500/15 text-rose-400';
                     modalActionIcon.innerHTML = '✗';
                     modalActionTitle.innerText = 'Reject Deposit Payment Proof';
@@ -1381,6 +1396,7 @@
 
             function openWithdrawConfirmModal(action, id, amt, email) {
                 pendingActionData = { type: 'withdraw', action: action, id: id, amt: amt, email: email };
+                if (modalAmountOverrideWrap) modalAmountOverrideWrap.classList.add('hidden');
                 if (action === 'approve') {
                     modalActionIcon.className = 'w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold bg-[#0ECB81]/15 text-[#0ECB81]';
                     modalActionIcon.innerHTML = '✓';
@@ -1424,6 +1440,13 @@
 
                     var endpoint = type === 'deposit' ? '/api/admin/deposits/action' : '/api/admin/withdrawals/action';
                     var bodyPayload = type === 'deposit' ? { deposit_id: id, action: action } : { id: id, withdrawal_id: id, action: action };
+
+                    if (type === 'deposit' && action === 'approve' && modalDepositCreditAmount) {
+                        var customAmt = parseFloat(modalDepositCreditAmount.value);
+                        if (!isNaN(customAmt) && customAmt > 0) {
+                            bodyPayload.amount = customAmt;
+                        }
+                    }
 
                     fetch(endpoint, {
                         method: 'POST',

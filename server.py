@@ -1636,24 +1636,33 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 d_user_id = d_rec["user_id"]
                 d_amount = float(d_rec["amount"])
 
+                # Allow admin to adjust/correct approved amount (e.g. user entered 110 by mistake instead of 10)
+                if payload.get("amount") is not None:
+                    try:
+                        override_val = float(payload.get("amount"))
+                        if override_val > 0:
+                            d_amount = round(override_val, 2)
+                    except (ValueError, TypeError):
+                        pass
+
                 if action == 'approve':
                     # Ensure user wallet exists
                     c.execute("SELECT id FROM wallets WHERE user_id = ?", (d_user_id,))
                     if not c.fetchone():
                         c.execute("""
                             INSERT INTO wallets (user_id, currency, balance, locked, updated_at)
-                            VALUES (?, 'USDT', 0.00, 0.00, datetime('now'))
+                            VALUES (?, 'USDT', 0.00, 0.00, CURRENT_TIMESTAMP)
                         """, (d_user_id,))
 
-                    # Increment wallet balance
+                    # Increment wallet balance with approved amount
                     c.execute("""
                         UPDATE wallets 
-                        SET balance = balance + ?, updated_at = datetime('now') 
+                        SET balance = balance + ?, updated_at = CURRENT_TIMESTAMP 
                         WHERE user_id = ?
                     """, (d_amount, d_user_id))
-                    c.execute("UPDATE deposits SET status = 'COMPLETED', confirmed_at = datetime('now') WHERE id = ?", (dep_id,))
+                    c.execute("UPDATE deposits SET amount = ?, status = 'COMPLETED', confirmed_at = CURRENT_TIMESTAMP WHERE id = ?", (d_amount, dep_id))
                     new_status = 'COMPLETED'
-                    msg = f"Deposit {dep_id} approved. ${d_amount:,.2f} USDT credited to user."
+                    msg = f"Deposit {dep_id} approved with corrected amount. ${d_amount:,.2f} USDT credited to user."
                 else:
                     c.execute("UPDATE deposits SET status = 'REJECTED' WHERE id = ?", (dep_id,))
                     new_status = 'REJECTED'
