@@ -144,30 +144,30 @@
                             '<span class="text-[10px] font-mono text-[#0ECB81] bg-[#0ECB81]/10 px-2 py-0.5 rounded font-bold">USDT Asset</span>' +
                         '</div>' +
                         '<div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">' +
-                            '<div class="bg-white/[0.02] p-3 rounded-lg border border-white/5">' +
-                                '<span class="text-[10px] text-[#848E9C] block uppercase font-medium">Spot Available</span>' +
-                                '<div class="text-lg font-black font-mono text-white mt-1">' +
+                            '<div class="bg-white/[0.03] p-3.5 rounded-xl border border-white/10">' +
+                                '<span class="text-xs text-[#848E9C] block uppercase font-bold tracking-wider">Spot Available</span>' +
+                                '<div class="text-xl md:text-2xl font-black font-mono text-white mt-1">' +
                                     '$<span id="upmBalance">0.00</span>' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="bg-white/[0.02] p-3 rounded-lg border border-white/5">' +
-                                '<span class="text-[10px] text-[#848E9C] block uppercase font-medium">In Transit / Pending</span>' +
-                                '<div class="text-lg font-black font-mono text-amber-400 mt-1">' +
+                            '<div class="bg-white/[0.03] p-3.5 rounded-xl border border-white/10">' +
+                                '<span class="text-xs text-[#848E9C] block uppercase font-bold tracking-wider">In Transit / Pending</span>' +
+                                '<div class="text-xl md:text-2xl font-black font-mono text-amber-400 mt-1">' +
                                     '$<span id="upmLocked">0.00</span>' +
                                 '</div>' +
                             '</div>' +
-                            '<div class="bg-white/[0.02] p-3 rounded-lg border border-white/5">' +
-                                '<span class="text-[10px] text-[#848E9C] block uppercase font-medium">Total Net Worth</span>' +
-                                '<div class="text-lg font-black font-mono text-[#0ECB81] mt-1">' +
+                            '<div class="bg-white/[0.03] p-3.5 rounded-xl border border-white/10">' +
+                                '<span class="text-xs text-[#848E9C] block uppercase font-bold tracking-wider">Total Net Worth</span>' +
+                                '<div class="text-xl md:text-2xl font-black font-mono text-[#0ECB81] mt-1">' +
                                     '$<span id="upmTotal">0.00</span>' +
                                 '</div>' +
                             '</div>' +
                         '</div>' +
-                        '<div class="flex gap-2 mt-3">' +
-                            '<a href="trade.html?modal=deposit" class="flex-1 py-2.5 rounded-lg bg-[#0ECB81] text-[#080A0D] font-bold text-center text-xs hover:bg-[#00F59B] transition-all shadow-[0_0_12px_rgba(14,203,129,0.25)] flex items-center justify-center gap-1.5">' +
+                        '<div class="flex gap-2.5 mt-3.5">' +
+                            '<a href="trade.html?modal=deposit" class="flex-1 py-3 rounded-xl bg-[#0ECB81] text-[#080A0D] font-extrabold text-center text-xs md:text-sm hover:bg-[#00F59B] transition-all shadow-[0_0_14px_rgba(14,203,129,0.3)] flex items-center justify-center gap-1.5 active:scale-95">' +
                                 '<span>+ Deposit Funds</span>' +
                             '</a>' +
-                            '<a href="trade.html?modal=withdraw" class="flex-1 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold text-center text-xs transition-all flex items-center justify-center gap-1.5">' +
+                            '<a href="trade.html?modal=withdraw" class="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-center text-xs md:text-sm transition-all border border-white/10 flex items-center justify-center gap-1.5 active:scale-95">' +
                                 '<span>&uarr; Withdraw</span>' +
                             '</a>' +
                         '</div>' +

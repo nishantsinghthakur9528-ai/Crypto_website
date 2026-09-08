@@ -305,20 +305,20 @@
         if (headerKycBadge && headerKycText && headerKycDot) {
             headerKycBadge.classList.remove('hidden');
             if (currentKycStatus === 'VERIFIED') {
-                headerKycBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-[#0ECB81]/10 text-[#0ECB81] border border-[#0ECB81]/30 hover:border-[#0ECB81] transition-colors flex items-center gap-1.5 cursor-pointer';
-                headerKycDot.className = 'w-1.5 h-1.5 rounded-full bg-[#0ECB81]';
+                headerKycBadge.className = 'text-xs font-mono px-2.5 py-1 rounded-lg font-bold bg-[#0ECB81]/10 text-[#0ECB81] border border-[#0ECB81]/30 hover:border-[#0ECB81] transition-colors flex items-center gap-1.5 cursor-pointer shrink-0';
+                headerKycDot.className = 'w-2 h-2 rounded-full bg-[#0ECB81]';
                 headerKycText.innerText = 'KYC: Verified ✓';
             } else if (currentKycStatus === 'PENDING_REVIEW') {
-                headerKycBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30 hover:border-blue-400 transition-colors flex items-center gap-1.5 cursor-pointer';
-                headerKycDot.className = 'w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse';
+                headerKycBadge.className = 'text-xs font-mono px-2.5 py-1 rounded-lg font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30 hover:border-blue-400 transition-colors flex items-center gap-1.5 cursor-pointer shrink-0';
+                headerKycDot.className = 'w-2 h-2 rounded-full bg-blue-400 animate-pulse';
                 headerKycText.innerText = 'KYC: In Review ⏳';
             } else if (currentKycStatus === 'REJECTED') {
-                headerKycBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:border-rose-400 transition-colors flex items-center gap-1.5 cursor-pointer';
-                headerKycDot.className = 'w-1.5 h-1.5 rounded-full bg-rose-500';
+                headerKycBadge.className = 'text-xs font-mono px-2.5 py-1 rounded-lg font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:border-rose-400 transition-colors flex items-center gap-1.5 cursor-pointer shrink-0';
+                headerKycDot.className = 'w-2 h-2 rounded-full bg-rose-500';
                 headerKycText.innerText = 'KYC: Rejected ✗';
             } else {
-                headerKycBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-amber-500/10 text-amber-400 border border-amber-500/25 hover:border-amber-400 transition-colors flex items-center gap-1.5 cursor-pointer';
-                headerKycDot.className = 'w-1.5 h-1.5 rounded-full bg-amber-400';
+                headerKycBadge.className = 'text-xs font-mono px-2.5 py-1 rounded-lg font-bold bg-amber-500/10 text-amber-400 border border-amber-500/25 hover:border-amber-400 transition-colors flex items-center gap-1.5 cursor-pointer shrink-0';
+                headerKycDot.className = 'w-2 h-2 rounded-full bg-amber-400';
                 headerKycText.innerText = 'KYC: Unverified';
             }
         }

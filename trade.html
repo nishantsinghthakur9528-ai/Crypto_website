@@ -178,25 +178,32 @@
                     <div id="bidsContainer" class="flex flex-col min-h-[110px] space-y-0.5"></div>
                 </div>
 
-                <!-- Wallet Balance Card -->
-                <div class="bg-[#181A20] border border-white/[0.08] rounded-xl p-4 shadow-lg flex items-center justify-between">
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-[10px] text-[#848E9C] uppercase tracking-wider block font-medium">Spot Available</span>
-                            <span id="userLockedWrap" class="hidden text-[10px] text-amber-400 font-mono bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded"><span id="userLockedBalance">0.00</span> In Transit</span>
-                            <button type="button" id="headerKycBadge" class="text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-amber-500/10 text-amber-400 border border-amber-500/25 hover:border-amber-400 transition-colors flex items-center gap-1.5 cursor-pointer" title="Click to view KYC verification status">
-                                <span id="headerKycDot" class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                                <span id="headerKycText">KYC: Unverified</span>
+                <!-- Wallet Balance Card (Spot Available & Action Buttons) -->
+                <div class="bg-[#181A20] border border-white/10 rounded-2xl p-5 md:p-6 shadow-xl flex flex-col gap-3.5 bg-gradient-to-b from-[#181A20] to-[#14161C]">
+                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-xs md:text-sm text-[#848E9C] uppercase tracking-wider font-bold">Spot Available</span>
+                            <span id="userLockedWrap" class="hidden text-xs text-amber-400 font-mono bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-md"><span id="userLockedBalance">0.00</span> In Transit</span>
+                        </div>
+                        <button type="button" id="headerKycBadge" class="text-xs font-mono px-2.5 py-1 rounded-lg font-bold bg-amber-500/10 text-amber-400 border border-amber-500/25 hover:border-amber-400 transition-colors flex items-center gap-1.5 cursor-pointer shrink-0" title="Click to view KYC verification status">
+                            <span id="headerKycDot" class="w-2 h-2 rounded-full bg-amber-400"></span>
+                            <span id="headerKycText">KYC: Unverified</span>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
+                        <div class="text-2xl md:text-3xl font-black font-mono text-white tracking-tight flex items-baseline gap-2">
+                            <span id="userWalletBalance">0.00</span>
+                            <span class="text-sm md:text-base text-[#0ECB81] font-extrabold">USDT</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 shrink-0">
+                            <button type="button" id="btnOpenDeposit" class="px-4 md:px-5 py-2 md:py-2.5 rounded-xl bg-[#0ECB81] text-[#080A0D] font-extrabold text-xs md:text-sm hover:bg-[#00F59B] transition-all shadow-[0_0_15px_rgba(14,203,129,0.3)] flex items-center gap-1.5 cursor-pointer active:scale-95">
+                                <span>+</span> <span>Deposit</span>
+                            </button>
+                            <button type="button" id="btnOpenWithdraw" class="px-4 md:px-5 py-2 md:py-2.5 rounded-xl bg-white/10 text-white font-bold text-xs md:text-sm hover:bg-white/20 border border-white/10 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95">
+                                <span>&uarr;</span> <span>Withdraw</span>
                             </button>
                         </div>
-                        <div class="text-lg font-black font-mono text-white flex items-center gap-1.5 mt-0.5">
-                            <span id="userWalletBalance">0.00</span>
-                            <span class="text-xs text-[#0ECB81] font-bold">USDT</span>
-                        </div>
-                    </div>
-                    <div class="flex gap-2">
-                        <button type="button" id="btnOpenDeposit" class="px-3 py-1.5 rounded-lg bg-[#0ECB81] text-[#080A0D] font-bold text-xs hover:bg-[#00F59B] transition-all shadow-[0_0_12px_rgba(14,203,129,0.25)]">Deposit</button>
-                        <button type="button" id="btnOpenWithdraw" class="px-3 py-1.5 rounded-lg bg-white/10 text-white font-medium text-xs hover:bg-white/20 transition-all">Withdraw</button>
                     </div>
                 </div>
 
