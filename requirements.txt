@@ -1,1 +1,2 @@
-# CryptoTop Exchange - Pure Python 3 standard library
+# CryptoTop Exchange - Production Dependencies
+psycopg2-binary>=2.9.9

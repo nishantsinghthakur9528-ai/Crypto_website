@@ -31,6 +31,17 @@ if os.path.exists(ENV_FILE):
 
 PORT = int(os.environ.get("PORT", 8080))
 DB_PATH = os.path.join(BASE_DIR, "cryptotop.db")
+DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
+
+try:
+    import psycopg2
+    import psycopg2.extras
+    PSYCOPG2_AVAILABLE = True
+except ImportError:
+    PSYCOPG2_AVAILABLE = False
+
+USE_POSTGRES = bool(DATABASE_URL and PSYCOPG2_AVAILABLE)
+
 WALLET_ADDRESSES_FILE = os.path.join(BASE_DIR, "wallet_addresses.json")
 TELEGRAM_CONFIG_FILE = os.path.join(BASE_DIR, "telegram_config.json")
 ADMIN_SECRET_KEY = os.environ.get("ADMIN_SECRET_KEY", "K8mP2xQ9vL4wR7nJ3tY6bZ1cE5aD8sF0")
@@ -210,12 +221,13 @@ def verify_password(password: str, password_hash: str, salt: str):
 
 def create_session(user_id: str) -> str:
     token = secrets.token_hex(32)
+    expires_at = (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')
     conn = get_db()
     c = conn.cursor()
     c.execute("""
         INSERT INTO sessions (token, user_id, created_at, expires_at)
-        VALUES (?, ?, datetime('now'), datetime('now', '+30 days'))
-    """, (token, user_id))
+        VALUES (?, ?, CURRENT_TIMESTAMP, ?)
+    """, (token, user_id, expires_at))
     conn.commit()
     conn.close()
     return token
@@ -238,7 +250,7 @@ def get_user_from_token(token: str):
         SELECT u.id, u.email, u.first_name, u.last_name, u.phone, u.birth_date, u.created_at, u.kyc_status
         FROM sessions s
         JOIN users u ON s.user_id = u.id
-        WHERE s.token = ? AND s.expires_at > datetime('now')
+        WHERE s.token = ? AND s.expires_at > CURRENT_TIMESTAMP
     """, (token,))
     row = c.fetchone()
     conn.close()
@@ -255,7 +267,160 @@ def get_user_from_token(token: str):
         }
     return None
 
+def get_postgres_url():
+    url = DATABASE_URL
+    if url.startswith("postgres://"):
+        url = "postgresql://" + url[len("postgres://"):]
+    return url
+
+class PostgresCursorWrapper:
+    def __init__(self, cursor):
+        self._cursor = cursor
+
+    def execute(self, sql, params=None):
+        clean_sql = sql.replace('?', '%s')
+        clean_sql = clean_sql.replace("datetime('now')", "CURRENT_TIMESTAMP")
+        clean_sql = clean_sql.replace("datetime('now', '+1 second')", "CURRENT_TIMESTAMP + INTERVAL '1 second'")
+        clean_sql = clean_sql.replace("datetime('now', '+30 days')", "CURRENT_TIMESTAMP + INTERVAL '30 days'")
+        if params is not None:
+            return self._cursor.execute(clean_sql, params)
+        return self._cursor.execute(clean_sql)
+
+    def fetchone(self):
+        return self._cursor.fetchone()
+
+    def fetchall(self):
+        return self._cursor.fetchall()
+
+    @property
+    def rowcount(self):
+        return self._cursor.rowcount
+
+    def __iter__(self):
+        return iter(self._cursor)
+
+    def __getattr__(self, name):
+        return getattr(self._cursor, name)
+
+class PostgresConnectionWrapper:
+    def __init__(self, conn):
+        self._conn = conn
+
+    def cursor(self):
+        return PostgresCursorWrapper(self._conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor))
+
+    def commit(self):
+        return self._conn.commit()
+
+    def rollback(self):
+        return self._conn.rollback()
+
+    def close(self):
+        return self._conn.close()
+
+    def execute(self, sql, params=None):
+        cur = self.cursor()
+        cur.execute(sql, params)
+        return cur
+
+def init_postgres():
+    try:
+        print("[DB] Initializing PostgreSQL cloud database...")
+        raw_conn = psycopg2.connect(get_postgres_url(), connect_timeout=10)
+        conn = PostgresConnectionWrapper(raw_conn)
+        c = conn.cursor()
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS wallets (
+                id SERIAL PRIMARY KEY,
+                user_id VARCHAR(255) UNIQUE,
+                currency VARCHAR(32),
+                balance DOUBLE PRECISION DEFAULT 0.0,
+                locked DOUBLE PRECISION DEFAULT 0.0,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS deposits (
+                id VARCHAR(64) PRIMARY KEY,
+                user_id VARCHAR(255),
+                currency VARCHAR(32),
+                network VARCHAR(64),
+                deposit_address VARCHAR(255),
+                amount DOUBLE PRECISION DEFAULT 0.0,
+                txid VARCHAR(255),
+                status VARCHAR(64),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                confirmed_at TIMESTAMP
+            );
+        """)
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS withdrawals (
+                id VARCHAR(64) PRIMARY KEY,
+                user_id VARCHAR(255),
+                currency VARCHAR(32),
+                network VARCHAR(64),
+                destination_address VARCHAR(255),
+                amount DOUBLE PRECISION DEFAULT 0.0,
+                fee DOUBLE PRECISION DEFAULT 0.0,
+                status VARCHAR(64),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                processed_at TIMESTAMP
+            );
+        """)
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id VARCHAR(64) PRIMARY KEY,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                salt TEXT NOT NULL,
+                first_name VARCHAR(128),
+                last_name VARCHAR(128),
+                phone VARCHAR(64),
+                birth_date VARCHAR(64),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                kyc_status VARCHAR(64) DEFAULT 'UNVERIFIED'
+            );
+        """)
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS sessions (
+                token VARCHAR(255) PRIMARY KEY,
+                user_id VARCHAR(64) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                expires_at TIMESTAMP NOT NULL
+            );
+        """)
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS kyc_verifications (
+                id VARCHAR(64) PRIMARY KEY,
+                user_id VARCHAR(64) UNIQUE,
+                full_name VARCHAR(255),
+                dob VARCHAR(64),
+                country VARCHAR(128),
+                id_type VARCHAR(64),
+                id_number VARCHAR(128),
+                front_doc TEXT,
+                back_doc TEXT,
+                selfie TEXT,
+                status VARCHAR(64) DEFAULT 'PENDING_REVIEW',
+                rejection_reason TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                reviewed_at TIMESTAMP
+            );
+        """)
+        conn.commit()
+        conn.close()
+        print("[DB] PostgreSQL cloud database tables verified & ready. Permanent persistence is ACTIVE!")
+        return True
+    except Exception as e:
+        print("[DB] Warning: PostgreSQL init failed:", e)
+        return False
+
 def init_db():
+    if USE_POSTGRES:
+        if init_postgres():
+            return
+        print("[DB] Falling back to SQLite local database.")
+
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     
@@ -361,6 +526,13 @@ def init_db():
     print("[DB] SQLite database initialized at", DB_PATH)
 
 def get_db():
+    if USE_POSTGRES:
+        try:
+            raw_conn = psycopg2.connect(get_postgres_url(), connect_timeout=10)
+            return PostgresConnectionWrapper(raw_conn)
+        except Exception as e:
+            print("[DB] Warning: PostgreSQL connection failed, falling back to local SQLite:", e)
+
     conn = sqlite3.connect(DB_PATH, timeout=15.0)
     conn.execute("PRAGMA journal_mode = WAL;")
     conn.execute("PRAGMA busy_timeout = 5000;")
