@@ -340,35 +340,49 @@
         if (depositKycGate && depositFormWrap) {
             if (currentKycStatus === 'VERIFIED') {
                 depositKycGate.classList.add('hidden');
-                depositFormWrap.classList.remove('opacity-40', 'pointer-events-none');
+                depositFormWrap.classList.remove('hidden', 'opacity-40', 'pointer-events-none');
                 if (depositKycVerifiedPill) depositKycVerifiedPill.classList.remove('hidden');
                 if (confirmDepositBtn) {
                     confirmDepositBtn.disabled = false;
                     confirmDepositBtn.innerText = 'Submit Payment Proof for Verification';
                 }
+                if (!currentAssignedAddress) {
+                    fetchAssignedDepositAddress(selectedDepositNetwork);
+                }
             } else {
                 depositKycGate.classList.remove('hidden');
-                depositFormWrap.classList.add('opacity-40', 'pointer-events-none');
+                depositFormWrap.classList.add('hidden');
+                depositFormWrap.classList.add('pointer-events-none');
                 if (depositKycVerifiedPill) depositKycVerifiedPill.classList.add('hidden');
                 if (confirmDepositBtn) {
                     confirmDepositBtn.disabled = true;
                     confirmDepositBtn.innerText = 'KYC Verification Required to Deposit';
                 }
 
+                // Clear sensitive deposit details from DOM while unverified
+                currentAssignedAddress = '';
+                if (assignedDepositAddress) assignedDepositAddress.innerText = '—';
+                if (depositQrImg) {
+                    depositQrImg.src = '';
+                    depositQrImg.classList.add('hidden');
+                }
+                var qrPlaceholder = document.getElementById('depositQrPlaceholder');
+                if (qrPlaceholder) qrPlaceholder.classList.remove('hidden');
+
                 if (currentKycStatus === 'PENDING_REVIEW') {
                     if (depositKycGateTitle) depositKycGateTitle.innerText = 'Identity Verification Under Review ⏳';
                     if (depositKycGateDesc) depositKycGateDesc.innerText = 'Your verification application is currently under compliance review. Deposits and trading will activate once approved.';
+                    if (btnGoToKyc) btnGoToKyc.innerText = 'View Verification Status ⏳';
                 } else if (currentKycStatus === 'REJECTED') {
                     if (depositKycGateTitle) depositKycGateTitle.innerText = 'Identity Verification Needs Attention ✗';
                     if (depositKycGateDesc) depositKycGateDesc.innerText = 'Your previous verification was rejected: ' + ((ver && ver.rejection_reason) ? ver.rejection_reason : 'Please submit updated documents.') + ' Re-submission required to unlock deposits and trading.';
+                    if (btnGoToKyc) btnGoToKyc.innerText = 'Re-Submit Verification (KYC) →';
                 } else {
-                    if (depositKycGateTitle) depositKycGateTitle.innerText = 'Identity Verification (KYC) Required ⚠️';
-                    if (depositKycGateDesc) depositKycGateDesc.innerText = 'Under international compliance regulations, Level 1 Identity Verification is required before depositing digital assets into your Spot Wallet.';
+                    var isGuest = !getAuthToken();
+                    if (depositKycGateTitle) depositKycGateTitle.innerText = isGuest ? 'Sign In & Verify to Deposit' : 'Identity Verification (KYC) Required 🛡️';
+                    if (depositKycGateDesc) depositKycGateDesc.innerText = isGuest ? 'Please sign in to your account and complete Level 1 Identity Verification to receive a secure deposit address.' : 'Under international compliance regulations, Level 1 Identity Verification is required before depositing digital assets into your Spot Wallet.';
+                    if (btnGoToKyc) btnGoToKyc.innerText = isGuest ? 'Sign In / Register Now →' : 'Complete Identity Verification (KYC) Now →';
                 }
-            }
-
-            if (!currentAssignedAddress) {
-                fetchAssignedDepositAddress(selectedDepositNetwork);
             }
         }
 
@@ -612,7 +626,11 @@
             if (tabDepositBtn) tabDepositBtn.className = 'flex-1 py-1.5 rounded-lg text-xs font-bold bg-[#0ECB81] text-[#080A0D] transition-all';
             if (depositView) depositView.style.display = 'flex';
             fetchKycStatus();
-            fetchAssignedDepositAddress(selectedDepositNetwork);
+            if (currentKycStatus === 'VERIFIED') {
+                fetchAssignedDepositAddress(selectedDepositNetwork);
+            } else {
+                updateKycUI(currentKycStatus);
+            }
         } else if (tab === 'withdraw') {
             if (tabWithdrawBtn) tabWithdrawBtn.className = 'flex-1 py-1.5 rounded-lg text-xs font-bold bg-[#0ECB81] text-[#080A0D] transition-all';
             if (withdrawView) withdrawView.style.display = 'flex';
@@ -642,8 +660,20 @@
         modalOverlay.classList.remove('capitexa-modal-overlay--open');
     }
 
-    if (btnDeposit) btnDeposit.addEventListener('click', function () { openWalletModal('deposit'); });
-    if (btnWithdraw) btnWithdraw.addEventListener('click', function () { openWalletModal('withdraw'); });
+    if (btnDeposit) btnDeposit.addEventListener('click', function () {
+        if (!getAuthToken()) {
+            window.location.href = 'login.html';
+            return;
+        }
+        openWalletModal('deposit');
+    });
+    if (btnWithdraw) btnWithdraw.addEventListener('click', function () {
+        if (!getAuthToken()) {
+            window.location.href = 'login.html';
+            return;
+        }
+        openWalletModal('withdraw');
+    });
     if (modalClose) modalClose.addEventListener('click', closeWalletModal);
     if (modalOverlay) modalOverlay.addEventListener('click', function (e) {
         if (e.target === modalOverlay) closeWalletModal();
@@ -653,15 +683,32 @@
     if (tabWithdrawBtn) tabWithdrawBtn.addEventListener('click', function () { switchModalTab('withdraw'); });
     if (tabHistoryBtn) tabHistoryBtn.addEventListener('click', function () { switchModalTab('history'); });
     if (tabKycBtn) tabKycBtn.addEventListener('click', function () { switchModalTab('kyc'); });
-    if (btnGoToKyc) btnGoToKyc.addEventListener('click', function () { switchModalTab('kyc'); });
-    if (btnGoToKycFromWithdraw) btnGoToKycFromWithdraw.addEventListener('click', function () { switchModalTab('kyc'); });
+    if (btnGoToKyc) btnGoToKyc.addEventListener('click', function () {
+        if (!getAuthToken()) {
+            window.location.href = 'login.html';
+            return;
+        }
+        switchModalTab('kyc');
+    });
+    if (btnGoToKycFromWithdraw) btnGoToKycFromWithdraw.addEventListener('click', function () {
+        if (!getAuthToken()) {
+            window.location.href = 'login.html';
+            return;
+        }
+        switchModalTab('kyc');
+    });
     if (btnGoToDeposit) btnGoToDeposit.addEventListener('click', function () { switchModalTab('deposit'); });
     if (headerKycBadge) headerKycBadge.addEventListener('click', function () { openWalletModal('kyc'); });
 
     // Deposit Network State & Address Assignment
+    var networkDepositInfo = {
+        'USDT-BEP20': { min: '10.00 USDT', confirmations: 15, fee: '0.00 USDT' },
+        'USDT-TRC20': { min: '10.00 USDT', confirmations: 1, fee: '0.00 USDT' }
+    };
+
     var selectedDepositNetwork = 'USDT-BEP20';
     var currentAssignedDepositId = '';
-    var currentAssignedAddress = '0x6BdC0219822A3202518230632EE5DC9d71C9b776';
+    var currentAssignedAddress = '';
 
     var assignedDepositAddress = document.getElementById('assignedDepositAddress');
     var depositQrImg = document.getElementById('depositQrImg');
@@ -675,30 +722,26 @@
         'USDT-TRC20': 'TRON (TRC20)'
     };
 
-    var defaultDepositAddresses = {
-        'USDT-BEP20': '0x6BdC0219822A3202518230632EE5DC9d71C9b776',
-        'USDT-TRC20': 'TBLVoZkfZrderqfv1oJxkQQFn7UeMV3yXo'
-    };
-
     function fetchAssignedDepositAddress(network) {
         selectedDepositNetwork = network || 'USDT-BEP20';
         if (depositNetworkBadge) depositNetworkBadge.innerText = networkNameLabels[selectedDepositNetwork] || selectedDepositNetwork;
 
-        // Instant display of network deposit address and QR code
-        var instantAddr = defaultDepositAddresses[selectedDepositNetwork] || defaultDepositAddresses['USDT-BEP20'];
-        currentAssignedAddress = instantAddr;
-        if (assignedDepositAddress) assignedDepositAddress.innerText = instantAddr;
-        if (depositQrImg) {
-            depositQrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(instantAddr) + '&bgcolor=FFFFFF&color=0B0E11&margin=2';
-            depositQrImg.classList.remove('hidden');
+        // Strictly do NOT fetch or reveal deposit addresses if not KYC verified or unauthenticated
+        if (currentKycStatus !== 'VERIFIED' || !getAuthToken()) {
+            currentAssignedAddress = '';
+            if (assignedDepositAddress) assignedDepositAddress.innerText = '—';
+            if (depositQrImg) {
+                depositQrImg.src = '';
+                depositQrImg.classList.add('hidden');
+            }
+            var qrPlaceholder = document.getElementById('depositQrPlaceholder');
+            if (qrPlaceholder) qrPlaceholder.classList.remove('hidden');
+            return;
         }
-        var qrPlaceholder = document.getElementById('depositQrPlaceholder');
-        if (qrPlaceholder) qrPlaceholder.classList.add('hidden');
 
         var netInfo = networkDepositInfo[selectedDepositNetwork] || networkDepositInfo["USDT-BEP20"];
         if (minDepDisplay && netInfo) minDepDisplay.innerText = netInfo.min;
 
-        // Sync with backend API (works for both authenticated and guest users)
         fetch('/api/deposit/assign-address?network=' + encodeURIComponent(selectedDepositNetwork), {
             headers: getAuthHeaders()
         })
@@ -713,18 +756,21 @@
                 if (depositQrImg) {
                     var qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(data.address) + '&bgcolor=FFFFFF&color=0B0E11&margin=2';
                     depositQrImg.src = qrUrl;
+                    depositQrImg.classList.remove('hidden');
                     depositQrImg.onerror = function () {
                         depositQrImg.src = 'https://quickchart.io/qr?text=' + encodeURIComponent(data.address) + '&size=180';
                     };
                 }
+                var qrPlaceholder = document.getElementById('depositQrPlaceholder');
+                if (qrPlaceholder) qrPlaceholder.classList.add('hidden');
 
                 var netInfoLive = networkDepositInfo[selectedDepositNetwork] || networkDepositInfo["USDT-BEP20"];
                 if (minDepDisplay && netInfoLive) minDepDisplay.innerText = netInfoLive.min;
+            } else if (data.kyc_required) {
+                updateKycUI(data.kyc_status || 'UNVERIFIED');
             }
         })
-        .catch(function () {
-            // Keep the instant fallback address intact
-        });
+        .catch(function () {});
     }
 
     // Copy Assigned Address to Clipboard
@@ -1504,6 +1550,7 @@
     // 11. Initialization
     // =========================================================================
     window.addEventListener('DOMContentLoaded', function () {
+        updateKycUI('UNVERIFIED');
         initChart();
         startLiveTicks();
         fetchWalletBalance();

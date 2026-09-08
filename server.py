@@ -889,8 +889,30 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         # API: Assign Real Deposit Address from Pool
         elif path == '/api/deposit/assign-address':
             user = self.get_authenticated_user()
-            user_id = user["id"] if user else None
-            user_kyc = user.get("kycStatus", "UNVERIFIED") if user else "UNVERIFIED"
+            if not user:
+                self._send_json(401, {
+                    "success": False,
+                    "auth_required": True,
+                    "error": "Authentication required. Please sign in to view deposit address."
+                })
+                return
+
+            user_id = user["id"]
+            conn_chk = get_db()
+            c_chk = conn_chk.cursor()
+            c_chk.execute("SELECT kyc_status FROM users WHERE id = ?", (user_id,))
+            u_row = c_chk.fetchone()
+            conn_chk.close()
+            user_kyc = u_row["kyc_status"] if u_row and u_row["kyc_status"] else "UNVERIFIED"
+
+            if user_kyc != 'VERIFIED':
+                self._send_json(403, {
+                    "success": False,
+                    "kyc_required": True,
+                    "kyc_status": user_kyc,
+                    "error": "Identity verification (Level 1 KYC) is required to access deposit addresses."
+                })
+                return
 
             qs = urllib.parse.parse_qs(parsed.query)
             network = qs.get('network', ['USDT-BEP20'])[0]
@@ -903,15 +925,14 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             chosen_address = get_random_deposit_address(network)
             dep_id = f"DEP-{uuid.uuid4().hex[:8].upper()}"
 
-            if user_id:
-                conn = get_db()
-                c = conn.cursor()
-                c.execute("""
-                    INSERT INTO deposits (id, user_id, currency, network, deposit_address, amount, status, created_at)
-                    VALUES (?, ?, 'USDT', ?, ?, 0.0, 'INITIATED', CURRENT_TIMESTAMP)
-                """, (dep_id, user_id, network, chosen_address))
-                conn.commit()
-                conn.close()
+            conn = get_db()
+            c = conn.cursor()
+            c.execute("""
+                INSERT INTO deposits (id, user_id, currency, network, deposit_address, amount, status, created_at)
+                VALUES (?, ?, 'USDT', ?, ?, 0.0, 'INITIATED', CURRENT_TIMESTAMP)
+            """, (dep_id, user_id, network, chosen_address))
+            conn.commit()
+            conn.close()
 
             self._send_json(200, {
                 "success": True,
@@ -923,13 +944,39 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "confirmations_required": net_info["confirmations"],
                 "fee": net_info["fee"],
                 "kyc_status": user_kyc,
-                "kyc_verified": (user_kyc == "VERIFIED"),
-                "authenticated": bool(user_id)
+                "kyc_verified": True,
+                "authenticated": True
             })
             return
 
         # API: Get Random Deposit Address from Pool (Compatibility Fallback)
         elif path == '/api/deposit/random-address':
+            user = self.get_authenticated_user()
+            if not user:
+                self._send_json(401, {
+                    "success": False,
+                    "auth_required": True,
+                    "error": "Authentication required. Please sign in to view deposit address."
+                })
+                return
+
+            user_id = user["id"]
+            conn_chk = get_db()
+            c_chk = conn_chk.cursor()
+            c_chk.execute("SELECT kyc_status FROM users WHERE id = ?", (user_id,))
+            u_row = c_chk.fetchone()
+            conn_chk.close()
+            user_kyc = u_row["kyc_status"] if u_row and u_row["kyc_status"] else "UNVERIFIED"
+
+            if user_kyc != 'VERIFIED':
+                self._send_json(403, {
+                    "success": False,
+                    "kyc_required": True,
+                    "kyc_status": user_kyc,
+                    "error": "Identity verification (Level 1 KYC) is required to access deposit addresses."
+                })
+                return
+
             qs = urllib.parse.parse_qs(parsed.query)
             network = qs.get('network', ['USDT-BEP20'])[0]
             if not network.startswith("USDT-"):
@@ -942,7 +989,9 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "address": chosen_address,
                 "min_deposit": net_info["min_deposit"],
                 "fee": net_info["fee"],
-                "confirmations": net_info["confirmations"]
+                "confirmations": net_info["confirmations"],
+                "kyc_status": user_kyc,
+                "kyc_verified": True
             })
             return
 
@@ -1337,16 +1386,33 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         # API: Create Deposit Request
         elif path == '/api/deposit/create':
-            user_id = self.get_current_user_id()
-            if not user_id:
-                self._send_json(401, {"success": False, "error": "Please log in to make a deposit."})
+            user = self.get_authenticated_user()
+            if not user:
+                self._send_json(401, {"success": False, "auth_required": True, "error": "Please log in to make a deposit."})
+                return
+
+            user_id = user["id"]
+            conn_chk = get_db()
+            c_chk = conn_chk.cursor()
+            c_chk.execute("SELECT kyc_status FROM users WHERE id = ?", (user_id,))
+            u_row = c_chk.fetchone()
+            conn_chk.close()
+            kyc_status = u_row["kyc_status"] if u_row and u_row["kyc_status"] else "UNVERIFIED"
+
+            if kyc_status != 'VERIFIED':
+                self._send_json(403, {
+                    "success": False,
+                    "kyc_required": True,
+                    "kyc_status": kyc_status,
+                    "error": "Identity verification (Level 1 KYC) is required before depositing funds. Please complete verification."
+                })
                 return
 
             network = payload.get("network", "USDT-TRC20")
             if not network.startswith("USDT-"):
                 network = f"USDT-{network}"
             currency = payload.get("currency", "USDT")
-            net_info = NETWORK_ADDRESSES.get(network, NETWORK_ADDRESSES["USDT-TRC20"])
+            net_info = NETWORK_ADDRESSES.get(network, NETWORK_ADDRESSES.get("USDT-TRC20", {}))
             chosen_address = get_random_deposit_address(network)
             
             dep_id = f"DEP-{uuid.uuid4().hex[:8].upper()}"
@@ -1365,9 +1431,9 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "currency": currency,
                 "network": network,
                 "status": "SECURE_GATEWAY_ASSIGNED",
-                "min_deposit": net_info["min_deposit"],
-                "confirmations_required": net_info["confirmations"],
-                "fee": net_info["fee"]
+                "min_deposit": net_info.get("min_deposit", 10.0),
+                "confirmations_required": net_info.get("confirmations", 12),
+                "fee": net_info.get("fee", "0.00 USDT")
             })
             return
 

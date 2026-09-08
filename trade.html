@@ -335,7 +335,7 @@
             <!-- 1. Deposit View -->
             <div id="depositView" class="flex flex-col gap-4 text-xs">
                 <!-- KYC Deposit Gate Barrier (Shown when unverified or pending) -->
-                <div id="depositKycGate" class="hidden p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 flex flex-col gap-2.5">
+                <div id="depositKycGate" class="p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 flex flex-col gap-2.5">
                     <div class="flex items-start gap-3">
                         <div class="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg shrink-0">
                             🛡️
@@ -343,7 +343,7 @@
                         <div class="flex-1 min-w-0">
                             <h4 id="depositKycGateTitle" class="text-xs font-bold text-white font-heading">Identity Verification (KYC) Required</h4>
                             <p id="depositKycGateDesc" class="text-[11px] text-[#848E9C] mt-0.5 leading-relaxed">
-                                Under international compliance standards, identity verification is required prior to depositing digital assets into your Spot Wallet.
+                                Under international compliance regulations, Level 1 Identity Verification is required before depositing digital assets into your Spot Wallet.
                             </p>
                         </div>
                     </div>
@@ -353,8 +353,8 @@
                     </button>
                 </div>
 
-                <!-- Active Deposit Form Container -->
-                <div id="depositFormWrap" class="flex flex-col gap-4">
+                <!-- Active Deposit Form Container (Hidden until KYC is VERIFIED) -->
+                <div id="depositFormWrap" class="hidden flex flex-col gap-4">
                     <div>
                         <div class="flex justify-between items-center mb-1.5">
                             <label class="text-[#848E9C] block font-medium">Select Deposit Network</label>
@@ -385,13 +385,17 @@
                         <div class="flex flex-col sm:flex-row items-center gap-3 bg-[#12161E] p-3 rounded-xl border border-white/5">
                             <!-- QR Code Box -->
                             <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-xl bg-white p-1.5 flex items-center justify-center shrink-0 shadow-md relative overflow-hidden">
-                                <img id="depositQrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=0x6BdC0219822A3202518230632EE5DC9d71C9b776&bgcolor=FFFFFF&color=0B0E11&margin=2" alt="Deposit QR Code" class="w-full h-full object-contain rounded">
+                                <img id="depositQrImg" src="" alt="Deposit QR Code" class="w-full h-full object-contain rounded hidden">
+                                <div id="depositQrPlaceholder" class="w-full h-full flex flex-col items-center justify-center text-[#848E9C] text-center p-1 bg-gray-100 rounded">
+                                    <span class="text-xl">🔒</span>
+                                    <span class="text-[9px] font-mono font-medium text-gray-600 mt-0.5">KYC Gate</span>
+                                </div>
                             </div>
 
                             <div class="flex-1 min-w-0 w-full flex flex-col justify-between gap-2">
                                 <div>
                                     <span class="text-[10px] text-[#848E9C] uppercase font-mono block">Send USDT to this address:</span>
-                                    <div id="assignedDepositAddress" class="font-mono text-xs text-white font-bold break-all bg-black/50 p-2 rounded-lg border border-white/10 mt-1 select-all">0x6BdC0219822A3202518230632EE5DC9d71C9b776</div>
+                                    <div id="assignedDepositAddress" class="font-mono text-xs text-white font-bold break-all bg-black/50 p-2 rounded-lg border border-white/10 mt-1 select-all">—</div>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <button type="button" id="btnCopyDepositAddress" class="flex-1 py-1.5 px-3 rounded-lg bg-[#0ECB81]/15 hover:bg-[#0ECB81] text-[#0ECB81] hover:text-[#080A0D] border border-[#0ECB81]/30 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer">
