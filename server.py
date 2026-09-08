@@ -405,8 +405,46 @@ def init_postgres():
                 rejection_reason TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 reviewed_at TIMESTAMP
-            );
         """)
+
+        # Safe migrations: ensure all necessary columns and unique indexes exist
+        migrations = [
+            ("users", "first_name VARCHAR(128)"),
+            ("users", "last_name VARCHAR(128)"),
+            ("users", "phone VARCHAR(64)"),
+            ("users", "birth_date VARCHAR(64)"),
+            ("users", "kyc_status VARCHAR(64) DEFAULT 'UNVERIFIED'"),
+            ("kyc_verifications", "full_name VARCHAR(255)"),
+            ("kyc_verifications", "dob VARCHAR(64)"),
+            ("kyc_verifications", "country VARCHAR(128)"),
+            ("kyc_verifications", "id_type VARCHAR(64)"),
+            ("kyc_verifications", "id_number VARCHAR(128)"),
+            ("kyc_verifications", "front_doc TEXT"),
+            ("kyc_verifications", "back_doc TEXT"),
+            ("kyc_verifications", "selfie TEXT"),
+            ("kyc_verifications", "status VARCHAR(64) DEFAULT 'PENDING_REVIEW'"),
+            ("kyc_verifications", "rejection_reason TEXT"),
+            ("kyc_verifications", "reviewed_at TIMESTAMP"),
+        ]
+        for tbl, col_def in migrations:
+            try:
+                c.execute(f"ALTER TABLE {tbl} ADD COLUMN IF NOT EXISTS {col_def}")
+            except Exception:
+                pass
+
+        try:
+            c.execute("""
+                DELETE FROM kyc_verifications WHERE id NOT IN (
+                    SELECT id FROM (
+                        SELECT id, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at DESC) as rn
+                        FROM kyc_verifications
+                    ) sub WHERE rn = 1
+                )
+            """)
+            c.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_kyc_verifications_user_id ON kyc_verifications(user_id)")
+        except Exception:
+            pass
+
         conn.commit()
         conn.close()
         print("[DB] PostgreSQL cloud database tables verified & ready. Permanent persistence is ACTIVE!")
@@ -566,7 +604,12 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
     def _send_json(self, status_code, data):
-        body = json.dumps(data, indent=2).encode('utf-8')
+        try:
+            body = json.dumps(data, indent=2, default=str).encode('utf-8')
+        except Exception as e:
+            print(f"[JSON ENCODE ERROR] {e}", flush=True)
+            body = json.dumps({"success": False, "error": str(e)}, default=str).encode('utf-8')
+            status_code = 500
         self.send_response(status_code)
         self.send_header('Content-Type', 'application/json')
         self.send_header('Content-Length', str(len(body)))
@@ -1023,36 +1066,41 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 
             status_filter = qs.get('status', ['ALL'])[0].upper()
             conn = get_db()
-            c = conn.cursor()
-            if status_filter == 'ALL':
-                c.execute("""
-                    SELECT k.id, k.user_id, u.email, u.first_name, u.last_name, 
-                           k.full_name, k.dob, k.country, k.id_type, k.id_number,
-                           k.front_doc, k.back_doc, k.selfie, k.status, k.rejection_reason,
-                           k.created_at, k.reviewed_at
-                    FROM kyc_verifications k
-                    LEFT JOIN users u ON k.user_id = u.id
-                    ORDER BY k.created_at DESC
-                """)
-            else:
-                c.execute("""
-                    SELECT k.id, k.user_id, u.email, u.first_name, u.last_name, 
-                           k.full_name, k.dob, k.country, k.id_type, k.id_number,
-                           k.front_doc, k.back_doc, k.selfie, k.status, k.rejection_reason,
-                           k.created_at, k.reviewed_at
-                    FROM kyc_verifications k
-                    LEFT JOIN users u ON k.user_id = u.id
-                    WHERE k.status = ?
-                    ORDER BY k.created_at DESC
-                """, (status_filter,))
-            rows = c.fetchall()
-            conn.close()
-            items = [dict(r) for r in rows]
-            self._send_json(200, {
-                "success": True,
-                "count": len(items),
-                "verifications": items
-            })
+            try:
+                c = conn.cursor()
+                if status_filter == 'ALL':
+                    c.execute("""
+                        SELECT k.id, k.user_id, u.email, u.first_name, u.last_name, 
+                               k.full_name, k.dob, k.country, k.id_type, k.id_number,
+                               k.front_doc, k.back_doc, k.selfie, k.status, k.rejection_reason,
+                               k.created_at, k.reviewed_at
+                        FROM kyc_verifications k
+                        LEFT JOIN users u ON k.user_id = u.id
+                        ORDER BY k.created_at DESC
+                    """)
+                else:
+                    c.execute("""
+                        SELECT k.id, k.user_id, u.email, u.first_name, u.last_name, 
+                               k.full_name, k.dob, k.country, k.id_type, k.id_number,
+                               k.front_doc, k.back_doc, k.selfie, k.status, k.rejection_reason,
+                               k.created_at, k.reviewed_at
+                        FROM kyc_verifications k
+                        LEFT JOIN users u ON k.user_id = u.id
+                        WHERE k.status = ?
+                        ORDER BY k.created_at DESC
+                    """, (status_filter,))
+                rows = c.fetchall()
+                items = [dict(r) for r in rows]
+                self._send_json(200, {
+                    "success": True,
+                    "count": len(items),
+                    "verifications": items
+                })
+            except Exception as e:
+                print(f"[ADMIN KYC ERROR] {e}", flush=True)
+                self._send_json(500, {"success": False, "error": str(e), "verifications": []})
+            finally:
+                conn.close()
             return
 
         # API: Admin Get Deposits Queue

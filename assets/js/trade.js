@@ -463,19 +463,53 @@
     var backDocBase64 = '';
     var selfieDocBase64 = '';
 
+    // Automatic client-side image compression to prevent large payloads (max 1280px, ~100KB JPEG)
+    function compressImage(file, maxDimension, quality, callback) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            var img = new Image();
+            img.onload = function () {
+                var width = img.width;
+                var height = img.height;
+                if (width > maxDimension || height > maxDimension) {
+                    if (width > height) {
+                        height = Math.round((height * maxDimension) / width);
+                        width = maxDimension;
+                    } else {
+                        width = Math.round((width * maxDimension) / height);
+                        height = maxDimension;
+                    }
+                }
+                var canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                var ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                var compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+                callback(compressedBase64);
+            };
+            img.onerror = function () {
+                callback(e.target.result);
+            };
+            img.src = e.target.result;
+        };
+        reader.onerror = function () {
+            showToast('Read Error', 'Could not read document file.', 'error');
+        };
+        reader.readAsDataURL(file);
+    }
+
     function bindFilePreview(inputEl, previewEl, promptEl, storeCallback) {
         if (!inputEl) return;
         inputEl.addEventListener('change', function (e) {
             var file = e.target.files && e.target.files[0];
             if (!file) return;
-            if (file.size > 5 * 1024 * 1024) {
-                showToast('File Too Large', 'Please select an image under 5MB.', 'error');
+            if (file.size > 15 * 1024 * 1024) {
+                showToast('File Too Large', 'Please select an image under 15MB.', 'error');
                 inputEl.value = '';
                 return;
             }
-            var reader = new FileReader();
-            reader.onload = function (evt) {
-                var base64 = evt.target.result;
+            compressImage(file, 1280, 0.82, function (base64) {
                 storeCallback(base64);
                 if (previewEl) {
                     var img = previewEl.querySelector('img');
@@ -484,8 +518,7 @@
                     previewEl.classList.add('flex');
                 }
                 if (promptEl) promptEl.classList.add('hidden');
-            };
-            reader.readAsDataURL(file);
+            });
         });
     }
 

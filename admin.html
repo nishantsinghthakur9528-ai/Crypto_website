@@ -1485,17 +1485,22 @@
             // =========================================================================
             function loadKycQueue() {
                 if (!currentAdminKey) return;
-                fetch('/api/admin/kyc', {
+                fetch('/api/admin/kyc?admin_key=' + encodeURIComponent(currentAdminKey), {
                     headers: { 'X-Admin-Key': currentAdminKey }
                 })
-                .then(function (res) { return res.json(); })
+                .then(function (res) {
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.json();
+                })
                 .then(function (data) {
                     if (data.success) {
                         allKycList = data.verifications || [];
                         updateKycDashboard();
                     }
                 })
-                .catch(function () {});
+                .catch(function (err) {
+                    console.error('[ADMIN KYC LOAD ERROR]', err);
+                });
             }
 
             function updateKycDashboard() {
