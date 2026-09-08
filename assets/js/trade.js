@@ -722,15 +722,16 @@
         'USDT-TRC20': 'TRON (TRC20)'
     };
 
-    var btnRefreshDepositAddress = document.getElementById('btnRefreshDepositAddress');
+    var assignedNetworkCache = {};
 
-    function fetchAssignedDepositAddress(network, forceNew) {
+    function fetchAssignedDepositAddress(network) {
         selectedDepositNetwork = network || 'USDT-BEP20';
         if (depositNetworkBadge) depositNetworkBadge.innerText = networkNameLabels[selectedDepositNetwork] || selectedDepositNetwork;
 
         // Strictly do NOT fetch or reveal deposit addresses if not KYC verified or unauthenticated
         if (currentKycStatus !== 'VERIFIED' || !getAuthToken()) {
             currentAssignedAddress = '';
+            assignedNetworkCache = {};
             if (assignedDepositAddress) assignedDepositAddress.innerText = '—';
             if (depositQrImg) {
                 depositQrImg.src = '';
@@ -744,12 +745,26 @@
         var netInfo = networkDepositInfo[selectedDepositNetwork] || networkDepositInfo["USDT-BEP20"];
         if (minDepDisplay && netInfo) minDepDisplay.innerText = netInfo.min;
 
-        var url = '/api/deposit/assign-address?network=' + encodeURIComponent(selectedDepositNetwork) + '&_t=' + Date.now();
-        if (forceNew && currentAssignedAddress) {
-            url += '&prev_address=' + encodeURIComponent(currentAssignedAddress);
+        // If an address was already assigned for this network during this session, maintain it stably
+        if (assignedNetworkCache[selectedDepositNetwork]) {
+            var cached = assignedNetworkCache[selectedDepositNetwork];
+            currentAssignedDepositId = cached.deposit_id || '';
+            currentAssignedAddress = cached.address || '';
+            if (assignedDepositAddress) assignedDepositAddress.innerText = currentAssignedAddress;
+            if (depositQrImg) {
+                var qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(currentAssignedAddress) + '&bgcolor=FFFFFF&color=0B0E11&margin=2';
+                depositQrImg.src = qrUrl;
+                depositQrImg.classList.remove('hidden');
+                depositQrImg.onerror = function () {
+                    depositQrImg.src = 'https://quickchart.io/qr?text=' + encodeURIComponent(currentAssignedAddress) + '&size=180';
+                };
+            }
+            var qrPlaceholder = document.getElementById('depositQrPlaceholder');
+            if (qrPlaceholder) qrPlaceholder.classList.add('hidden');
+            return;
         }
 
-        fetch(url, {
+        fetch('/api/deposit/assign-address?network=' + encodeURIComponent(selectedDepositNetwork), {
             headers: getAuthHeaders()
         })
         .then(function (res) { return res.json(); })
@@ -757,6 +772,10 @@
             if (data.success && data.address) {
                 currentAssignedDepositId = data.deposit_id || '';
                 currentAssignedAddress = data.address;
+                assignedNetworkCache[selectedDepositNetwork] = {
+                    deposit_id: currentAssignedDepositId,
+                    address: currentAssignedAddress
+                };
 
                 if (assignedDepositAddress) assignedDepositAddress.innerText = data.address;
 
@@ -778,14 +797,6 @@
             }
         })
         .catch(function () {});
-    }
-
-    if (btnRefreshDepositAddress) {
-        btnRefreshDepositAddress.addEventListener('click', function () {
-            if (currentKycStatus !== 'VERIFIED') return;
-            fetchAssignedDepositAddress(selectedDepositNetwork, true);
-            showToast('New Address Assigned', 'Assigned a fresh random vault address from the ' + (networkNameLabels[selectedDepositNetwork] || selectedDepositNetwork) + ' pool.', 'success');
-        });
     }
 
     // Copy Assigned Address to Clipboard
@@ -839,7 +850,7 @@
             btn.classList.remove('border-white/10', 'bg-white/[0.02]', 'text-[#848E9C]', 'font-medium');
 
             var net = btn.dataset.net;
-            fetchAssignedDepositAddress(net, true);
+            fetchAssignedDepositAddress(net);
         });
     });
 
@@ -965,6 +976,8 @@
             }
 
             if (data.success) {
+                assignedNetworkCache = {};
+                currentAssignedAddress = '';
                 if (depositTxidInput) depositTxidInput.value = '';
                 var amtInput = document.getElementById('depositAmountInput');
                 if (amtInput) amtInput.value = '';
