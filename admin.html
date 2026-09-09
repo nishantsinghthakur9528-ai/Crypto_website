@@ -119,6 +119,10 @@
                         <span>🪪 KYC Identity Verification</span>
                         <span id="badgePendingKyc" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-500/20 text-amber-400 font-bold">0</span>
                     </button>
+                    <button type="button" id="tabNavUsers" class="desk-nav-btn px-4 py-2 rounded-lg text-xs font-semibold text-[#848E9C] hover:text-white flex items-center gap-2 transition-all cursor-pointer">
+                        <span>👥 Registered Users</span>
+                        <span id="badgeTotalUsers" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-blue-500/20 text-blue-400 font-bold">0</span>
+                    </button>
                 </div>
 
                 <div class="flex items-center gap-2">
@@ -486,6 +490,119 @@
 
             </div>
 
+            <!-- SECTION 4: REGISTERED USERS & SECURITY LEDGER -->
+            <div id="usersDeskSection" class="hidden space-y-6">
+
+                <!-- Operational Notice Banner -->
+                <div class="bg-gradient-to-r from-blue-950/20 via-[#181A20] to-cyan-950/20 border border-white/10 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center text-lg font-bold">
+                            👥
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-white">Registered Customer Accounts & Security Ledger</h3>
+                            <p class="text-xs text-[#848E9C] mt-0.5">
+                                Real-time customer registry, KYC standing, spot equity balances, and cryptographic password hashes.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Metric Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-[#181A20] border border-white/5 rounded-2xl p-5 shadow-lg">
+                        <div class="text-[11px] font-medium text-[#848E9C] uppercase tracking-wider">Total Registered Accounts</div>
+                        <div class="text-2xl font-black font-mono text-white mt-1 flex items-baseline gap-2">
+                            <span id="statUsersTotalCount">0</span>
+                            <span class="text-xs text-white/50 font-normal">users</span>
+                        </div>
+                        <div class="text-xs text-[#848E9C] mt-2">All registered platform users</div>
+                    </div>
+
+                    <div class="bg-[#181A20] border border-white/5 rounded-2xl p-5 shadow-lg">
+                        <div class="text-[11px] font-medium text-[#848E9C] uppercase tracking-wider">KYC Verified Accounts</div>
+                        <div class="text-2xl font-black font-mono text-[#0ECB81] mt-1 flex items-baseline gap-2">
+                            <span id="statUsersVerifiedCount">0</span>
+                            <span class="text-xs text-[#0ECB81]/70 font-normal">verified</span>
+                        </div>
+                        <div class="text-xs text-[#848E9C] mt-2">Authorized for deposits & trading</div>
+                    </div>
+
+                    <div class="bg-[#181A20] border border-white/5 rounded-2xl p-5 shadow-lg">
+                        <div class="text-[11px] font-medium text-[#848E9C] uppercase tracking-wider">Unverified Accounts</div>
+                        <div class="text-2xl font-black font-mono text-amber-400 mt-1 flex items-baseline gap-2">
+                            <span id="statUsersUnverifiedCount">0</span>
+                            <span class="text-xs text-amber-400/70 font-normal">unverified</span>
+                        </div>
+                        <div class="text-xs text-[#848E9C] mt-2">Deposit gateway locked</div>
+                    </div>
+
+                    <div class="bg-[#181A20] border border-white/5 rounded-2xl p-5 shadow-lg">
+                        <div class="text-[11px] font-medium text-[#848E9C] uppercase tracking-wider">Customer Spot Custody</div>
+                        <div class="text-2xl font-black font-mono text-[#0ECB81] mt-1 flex items-baseline gap-2">
+                            $<span id="statUsersTotalBalance">0.00</span>
+                            <span class="text-xs text-[#0ECB81]/70 font-mono font-bold">USDT</span>
+                        </div>
+                        <div class="text-xs text-[#848E9C] mt-2">Combined user balances</div>
+                    </div>
+                </div>
+
+                <!-- Table Filter & Search Controls -->
+                <div class="bg-[#181A20] border border-[#2B3139] rounded-2xl p-5 shadow-lg space-y-4">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                        <!-- Status Filter Tabs -->
+                        <div class="flex gap-1.5 p-1 bg-black/40 rounded-xl border border-white/5 w-full md:w-auto">
+                            <button type="button" class="user-filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-bold bg-[#0ECB81] text-[#080A0D] transition-all cursor-pointer" data-filter="ALL">
+                                All Users (<span id="countUsersFilterAll">0</span>)
+                            </button>
+                            <button type="button" class="user-filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all cursor-pointer" data-filter="VERIFIED">
+                                Verified (<span id="countUsersFilterVerified">0</span>)
+                            </button>
+                            <button type="button" class="user-filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all cursor-pointer" data-filter="UNVERIFIED">
+                                Unverified (<span id="countUsersFilterUnverified">0</span>)
+                            </button>
+                        </div>
+
+                        <!-- Search Input -->
+                        <div class="relative w-full md:w-80">
+                            <input type="text" id="adminUsersSearchInput" placeholder="Search by email, name, phone, or user ID..." class="w-full bg-[#12161E] border border-white/10 rounded-xl pl-8 pr-3 py-2 text-xs text-white placeholder-[#848E9C] outline-none focus:border-[#0ECB81] transition-colors">
+                            <svg class="w-3.5 h-3.5 text-[#848E9C] absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Users Table Wrap -->
+                    <div class="overflow-x-auto rounded-xl border border-white/10">
+                        <table class="w-full text-left font-sans text-xs">
+                            <thead>
+                                <tr class="bg-black/40 border-b border-white/10 text-[#848E9C] uppercase text-[10px] font-mono tracking-wider">
+                                    <th class="py-3 px-4">User / Email</th>
+                                    <th class="py-3 px-4">Name & Phone</th>
+                                    <th class="py-3 px-4">KYC Status</th>
+                                    <th class="py-3 px-4">Spot Wallet Balance</th>
+                                    <th class="py-3 px-4">Registered Date</th>
+                                    <th class="py-3 px-4 text-right">Security / Password</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminUsersTableBody" class="divide-y divide-white/5 font-mono text-xs">
+                                <tr>
+                                    <td colspan="6" class="py-12 text-center text-[#848E9C]">
+                                        Loading registered accounts...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Empty State Notice -->
+                    <div id="usersEmptyNotice" class="hidden text-center py-10 text-[#848E9C] text-xs">
+                        No registered users found matching your search criteria.
+                    </div>
+                </div>
+
+            </div>
+
         </div>
 
     </main>
@@ -661,6 +778,53 @@
             </div>
 
         </div>
+    </div>
+
+    <!-- User Password Security Inspection Modal Dialog -->
+    <div id="userSecurityModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+        <div class="bg-[#181A20] border border-white/15 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold bg-blue-500/15 text-blue-400">
+                        🔐
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white font-heading">User Password & Security Ledger</h3>
+                        <p class="text-xs text-[#848E9C]">Database Cryptographic Credentials</p>
+                    </div>
+                </div>
+                <button type="button" id="userSecurityModalClose" class="text-white/50 hover:text-white text-2xl font-bold cursor-pointer transition-colors">&times;</button>
+            </div>
+
+            <div class="bg-[#12161E] p-4 rounded-xl border border-white/10 space-y-3 font-mono text-xs">
+                <div>
+                    <span class="text-[#848E9C] text-[10px] uppercase block">Account Email:</span>
+                    <span id="secModalEmail" class="text-[#0ECB81] font-bold text-sm select-all">--</span>
+                </div>
+                <div>
+                    <span class="text-[#848E9C] text-[10px] uppercase block">Internal User ID:</span>
+                    <span id="secModalUserId" class="text-white select-all">--</span>
+                </div>
+                <div>
+                    <span class="text-[#848E9C] text-[10px] uppercase block">Cryptographic Salt (16-byte hex):</span>
+                    <span id="secModalSalt" class="text-amber-400 break-all bg-black/40 p-2 rounded block border border-white/5 select-all">--</span>
+                </div>
+                <div>
+                    <span class="text-[#848E9C] text-[10px] uppercase block">Password Hash (SHA-256):</span>
+                    <span id="secModalHash" class="text-white break-all bg-black/40 p-2 rounded block border border-white/5 select-all">--</span>
+                </div>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-[11px] text-blue-300 leading-relaxed">
+                ℹ️ <strong>Security Standard:</strong> Real-world crypto exchanges do not store raw plaintext passwords in databases. Passwords are mathematically hashed with a per-user random salt (<code class="text-white">SHA-256(password + salt)</code>). The original password cannot be decrypted by anyone, protecting user credentials even if the database is accessed.
+            </div>
+
+            <button type="button" id="userSecurityModalCloseBtn" class="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-colors cursor-pointer">
+                Close Inspector
+            </button>
+        </div>
+    </div>
+
     <!-- Telegram Configuration Modal -->
     <div id="telegramConfigModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
         <div class="bg-[#181A20] border border-white/10 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5">
@@ -774,13 +938,38 @@
             var tabNavDeposits = document.getElementById('tabNavDeposits');
             var tabNavWithdrawals = document.getElementById('tabNavWithdrawals');
             var tabNavKyc = document.getElementById('tabNavKyc');
+            var tabNavUsers = document.getElementById('tabNavUsers');
             var badgePendingDeposits = document.getElementById('badgePendingDeposits');
             var badgePendingWithdrawals = document.getElementById('badgePendingWithdrawals');
             var badgePendingKyc = document.getElementById('badgePendingKyc');
+            var badgeTotalUsers = document.getElementById('badgeTotalUsers');
 
             var depositsDeskSection = document.getElementById('depositsDeskSection');
             var withdrawalDeskSection = document.getElementById('withdrawalDeskSection');
             var kycDeskSection = document.getElementById('kycDeskSection');
+            var usersDeskSection = document.getElementById('usersDeskSection');
+
+            // DOM Elements: Registered Users Desk
+            var allUsers = [];
+            var activeUserFilter = 'ALL';
+            var usersTableBody = document.getElementById('adminUsersTableBody');
+            var usersEmptyNotice = document.getElementById('usersEmptyNotice');
+            var adminUsersSearchInput = document.getElementById('adminUsersSearchInput');
+            var statUsersTotalCount = document.getElementById('statUsersTotalCount');
+            var statUsersVerifiedCount = document.getElementById('statUsersVerifiedCount');
+            var statUsersUnverifiedCount = document.getElementById('statUsersUnverifiedCount');
+            var statUsersTotalBalance = document.getElementById('statUsersTotalBalance');
+            var countUsersFilterAll = document.getElementById('countUsersFilterAll');
+            var countUsersFilterVerified = document.getElementById('countUsersFilterVerified');
+            var countUsersFilterUnverified = document.getElementById('countUsersFilterUnverified');
+
+            var userSecurityModal = document.getElementById('userSecurityModal');
+            var userSecurityModalClose = document.getElementById('userSecurityModalClose');
+            var userSecurityModalCloseBtn = document.getElementById('userSecurityModalCloseBtn');
+            var secModalEmail = document.getElementById('secModalEmail');
+            var secModalUserId = document.getElementById('secModalUserId');
+            var secModalSalt = document.getElementById('secModalSalt');
+            var secModalHash = document.getElementById('secModalHash');
 
             // DOM Elements: Deposits Desk
             var depositsTableBody = document.getElementById('adminDepositsTableBody');
@@ -950,7 +1139,7 @@
                 });
             }
 
-            // Tab Switching: Deposits vs Withdrawals vs KYC
+            // Tab Switching: Deposits vs Withdrawals vs KYC vs Users
             function switchDeskTab(tab) {
                 activeDeskTab = tab;
                 var inactiveBtnClass = 'desk-nav-btn px-4 py-2 rounded-lg text-xs font-semibold text-[#848E9C] hover:text-white flex items-center gap-2 transition-all cursor-pointer';
@@ -959,10 +1148,12 @@
                 tabNavDeposits.className = inactiveBtnClass;
                 tabNavWithdrawals.className = inactiveBtnClass;
                 tabNavKyc.className = inactiveBtnClass;
+                if (tabNavUsers) tabNavUsers.className = inactiveBtnClass;
 
                 depositsDeskSection.classList.add('hidden');
                 withdrawalDeskSection.classList.add('hidden');
                 kycDeskSection.classList.add('hidden');
+                if (usersDeskSection) usersDeskSection.classList.add('hidden');
 
                 if (tab === 'deposits') {
                     tabNavDeposits.className = activeBtnClass;
@@ -970,6 +1161,9 @@
                 } else if (tab === 'withdrawals') {
                     tabNavWithdrawals.className = activeBtnClass;
                     withdrawalDeskSection.classList.remove('hidden');
+                } else if (tab === 'users') {
+                    if (tabNavUsers) tabNavUsers.className = activeBtnClass;
+                    if (usersDeskSection) usersDeskSection.classList.remove('hidden');
                 } else {
                     tabNavKyc.className = activeBtnClass;
                     kycDeskSection.classList.remove('hidden');
@@ -979,6 +1173,7 @@
             if (tabNavDeposits) tabNavDeposits.addEventListener('click', function () { switchDeskTab('deposits'); });
             if (tabNavWithdrawals) tabNavWithdrawals.addEventListener('click', function () { switchDeskTab('withdrawals'); });
             if (tabNavKyc) tabNavKyc.addEventListener('click', function () { switchDeskTab('kyc'); });
+            if (tabNavUsers) tabNavUsers.addEventListener('click', function () { switchDeskTab('users'); });
 
             // Verify Key & Load Data
             function verifyAndLoad(key) {
@@ -1000,6 +1195,7 @@
                         updateDepositsDashboard();
                         loadWithdrawalsQueue();
                         loadKycQueue();
+                        loadUsersList();
                         loadTelegramStatus();
                         showToast('Access Granted', 'Welcome to CryptoTop Compliance Desk.', 'success');
                     } else {
@@ -1019,13 +1215,14 @@
                 loadDepositsQueue();
                 loadWithdrawalsQueue();
                 loadKycQueue();
+                loadUsersList();
                 loadTelegramStatus();
             }
 
             if (btnRefreshAll) {
                 btnRefreshAll.addEventListener('click', function () {
                     refreshAllQueues();
-                    showToast('Desk Refreshed', 'Deposits, withdrawals, and KYC queues reloaded.', 'info');
+                    showToast('Desk Refreshed', 'Deposits, withdrawals, KYC, and users reloaded.', 'info');
                 });
             }
 
@@ -1772,7 +1969,195 @@
             }
 
             // =========================================================================
-            // 4. TELEGRAM PUSH NOTIFICATION SETTINGS LOGIC
+            // 4. REGISTERED USERS & SECURITY LEDGER LOGIC
+            // =========================================================================
+            var userSearchQuery = '';
+
+            function loadUsersList() {
+                if (!currentAdminKey) return;
+                if (usersTableBody) {
+                    usersTableBody.innerHTML = '<tr><td colspan="6" class="py-10 text-center text-[#848E9C]">Loading customer ledger...</td></tr>';
+                }
+
+                fetch('/api/admin/users', {
+                    headers: { 'X-Admin-Key': currentAdminKey }
+                })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (data.success) {
+                        allUsers = data.users || [];
+                        updateUsersDashboard();
+                    } else {
+                        showToast('Failed to Load Users', data.error || 'Could not fetch user ledger.', 'error');
+                    }
+                })
+                .catch(function () {
+                    showToast('Connection Error', 'Failed to reach administrative API for users.', 'error');
+                });
+            }
+
+            function updateUsersDashboard() {
+                var verifiedCount = 0;
+                var unverifiedCount = 0;
+                var totalBalance = 0.0;
+
+                allUsers.forEach(function (u) {
+                    if (u.kyc_status === 'VERIFIED') {
+                        verifiedCount++;
+                    } else {
+                        unverifiedCount++;
+                    }
+                    totalBalance += (parseFloat(u.spot_balance) || 0.0);
+                });
+
+                if (statUsersTotalCount) statUsersTotalCount.innerText = allUsers.length;
+                if (statUsersVerifiedCount) statUsersVerifiedCount.innerText = verifiedCount;
+                if (statUsersUnverifiedCount) statUsersUnverifiedCount.innerText = unverifiedCount;
+                if (statUsersTotalBalance) statUsersTotalBalance.innerText = totalBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                if (countUsersFilterAll) countUsersFilterAll.innerText = allUsers.length;
+                if (countUsersFilterVerified) countUsersFilterVerified.innerText = verifiedCount;
+                if (countUsersFilterUnverified) countUsersFilterUnverified.innerText = unverifiedCount;
+                if (badgeTotalUsers) badgeTotalUsers.innerText = allUsers.length;
+
+                renderUsersTable();
+            }
+
+            // Filter Tabs for Users
+            var userFilterButtons = document.querySelectorAll('.user-filter-tab-btn');
+            userFilterButtons.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    userFilterButtons.forEach(function (b) {
+                        b.className = 'user-filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all cursor-pointer';
+                    });
+                    btn.className = 'user-filter-tab-btn flex-1 md:flex-initial px-4 py-1.5 rounded-lg text-xs font-bold bg-[#0ECB81] text-[#080A0D] transition-all cursor-pointer';
+
+                    activeUserFilter = btn.dataset.filter || 'ALL';
+                    renderUsersTable();
+                });
+            });
+
+            if (adminUsersSearchInput) {
+                adminUsersSearchInput.addEventListener('input', function (e) {
+                    userSearchQuery = e.target.value.trim().toLowerCase();
+                    renderUsersTable();
+                });
+            }
+
+            function renderUsersTable() {
+                if (!usersTableBody) return;
+
+                var filtered = allUsers.filter(function (u) {
+                    // Status filter
+                    if (activeUserFilter === 'VERIFIED' && u.kyc_status !== 'VERIFIED') return false;
+                    if (activeUserFilter === 'UNVERIFIED' && u.kyc_status === 'VERIFIED') return false;
+
+                    // Search filter
+                    if (userSearchQuery) {
+                        var q = userSearchQuery;
+                        var fullName = ((u.first_name || '') + ' ' + (u.last_name || '')).toLowerCase();
+                        var email = (u.email || '').toLowerCase();
+                        var phone = (u.phone || '').toLowerCase();
+                        var idStr = String(u.id || '').toLowerCase();
+
+                        if (!fullName.includes(q) && !email.includes(q) && !phone.includes(q) && !idStr.includes(q)) {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+
+                if (filtered.length === 0) {
+                    usersTableBody.innerHTML = '';
+                    if (usersEmptyNotice) usersEmptyNotice.classList.remove('hidden');
+                    return;
+                }
+
+                if (usersEmptyNotice) usersEmptyNotice.classList.add('hidden');
+
+                var html = '';
+                filtered.forEach(function (user) {
+                    var statusBadge = '';
+                    if (user.kyc_status === 'VERIFIED') {
+                        statusBadge = '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-[#0ECB81]/10 text-[#0ECB81] border border-[#0ECB81]/20"><span class="w-1.5 h-1.5 rounded-full bg-[#0ECB81]"></span>VERIFIED</span>';
+                    } else if (user.kyc_status === 'PENDING_REVIEW') {
+                        statusBadge = '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-400/10 text-amber-400 border border-amber-400/20"><span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>PENDING</span>';
+                    } else if (user.kyc_status === 'REJECTED') {
+                        statusBadge = '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-[#F6465D]/10 text-[#F6465D] border border-[#F6465D]/20"><span class="w-1.5 h-1.5 rounded-full bg-[#F6465D]"></span>REJECTED</span>';
+                    } else {
+                        statusBadge = '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-white/10 text-[#848E9C] border border-white/15"><span class="w-1.5 h-1.5 rounded-full bg-[#848E9C]"></span>UNVERIFIED</span>';
+                    }
+
+                    var legalName = (user.first_name || user.last_name) ? (escapeHtml(user.first_name) + ' ' + escapeHtml(user.last_name)) : '<span class="text-white/40 italic">Not set</span>';
+                    var regDate = user.created_at ? user.created_at.split('T')[0] : '--';
+                    var balanceFormatted = (parseFloat(user.spot_balance) || 0.0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                    html += '<tr class="hover:bg-white/[0.02] transition-colors">' +
+                        '<td class="py-3.5 px-4">' +
+                            '<div class="flex items-center gap-2.5">' +
+                                '<div class="w-8 h-8 rounded-full bg-[#0ECB81]/15 text-[#0ECB81] flex items-center justify-center font-bold text-xs shrink-0">' +
+                                    (user.email ? user.email.charAt(0).toUpperCase() : 'U') +
+                                '</div>' +
+                                '<div>' +
+                                    '<div class="font-bold text-white font-sans text-xs">' + escapeHtml(user.email) + '</div>' +
+                                    '<div class="text-[10px] text-[#848E9C] font-mono">UID: #' + escapeHtml(user.id) + '</div>' +
+                                '</div>' +
+                            '</div>' +
+                        '</td>' +
+                        '<td class="py-3.5 px-4">' +
+                            '<div class="text-white text-xs font-sans">' + legalName + '</div>' +
+                            '<div class="text-[10px] text-[#848E9C] font-mono">' + escapeHtml(user.phone) + '</div>' +
+                        '</td>' +
+                        '<td class="py-3.5 px-4">' + statusBadge + '</td>' +
+                        '<td class="py-3.5 px-4">' +
+                            '<div class="text-[#0ECB81] font-bold font-mono text-xs">$' + balanceFormatted + '</div>' +
+                            '<div class="text-[10px] text-[#848E9C] font-sans">Spot USDT</div>' +
+                        '</td>' +
+                        '<td class="py-3.5 px-4 text-[#848E9C] font-mono text-xs">' + escapeHtml(regDate) + '</td>' +
+                        '<td class="py-3.5 px-4 text-right">' +
+                            '<button type="button" class="btn-inspect-security px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-white text-[11px] font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5" data-user-id="' + escapeHtml(user.id) + '">' +
+                                '<span>🔐</span><span>Security Ledger</span>' +
+                            '</button>' +
+                        '</td>' +
+                    '</tr>';
+                });
+
+                usersTableBody.innerHTML = html;
+
+                // Bind security ledger inspect buttons
+                var inspectBtns = usersTableBody.querySelectorAll('.btn-inspect-security');
+                inspectBtns.forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var uid = btn.dataset.userId;
+                        var target = allUsers.find(function (u) { return String(u.id) === String(uid); });
+                        if (target) openUserSecurityModal(target);
+                    });
+                });
+            }
+
+            function openUserSecurityModal(user) {
+                if (!userSecurityModal) return;
+                if (secModalEmail) secModalEmail.innerText = user.email || '--';
+                if (secModalUserId) secModalUserId.innerText = '#' + user.id;
+                if (secModalSalt) secModalSalt.innerText = user.salt_hex || '(none)';
+                if (secModalHash) secModalHash.innerText = user.password_hash || '(none)';
+                userSecurityModal.classList.remove('hidden');
+            }
+
+            function closeUserSecurityModal() {
+                if (userSecurityModal) userSecurityModal.classList.add('hidden');
+            }
+
+            if (userSecurityModalClose) userSecurityModalClose.addEventListener('click', closeUserSecurityModal);
+            if (userSecurityModalCloseBtn) userSecurityModalCloseBtn.addEventListener('click', closeUserSecurityModal);
+            if (userSecurityModal) {
+                userSecurityModal.addEventListener('click', function (e) {
+                    if (e.target === userSecurityModal) closeUserSecurityModal();
+                });
+            }
+
+            // =========================================================================
+            // 5. TELEGRAM PUSH NOTIFICATION SETTINGS LOGIC
             // =========================================================================
             var btnTelegramModal = document.getElementById('btnTelegramModal');
             var telegramConfigModal = document.getElementById('telegramConfigModal');

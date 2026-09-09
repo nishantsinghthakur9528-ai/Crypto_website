@@ -318,29 +318,31 @@
 
     <!-- Deposit / Withdraw Modal Dialog -->
     <div id="walletModalOverlay" class="cryptotop-modal-overlay capitexa-modal-overlay">
-        <div class="cryptotop-modal-card capitexa-modal-card p-6 relative max-w-[500px] w-full">
-            <!-- Modal Header -->
-            <div class="flex justify-between items-center pb-3 mb-4 border-b border-white/10">
+        <div class="cryptotop-modal-card capitexa-modal-card p-4 sm:p-6 relative max-w-[520px] w-full flex flex-col max-h-[92dvh] sm:max-h-[88vh]">
+            <!-- Modal Header (Fixed / Non-scrolling) -->
+            <div class="flex justify-between items-center pb-3 mb-3 border-b border-white/10 shrink-0">
                 <div class="flex items-center gap-2">
                     <div class="w-2.5 h-2.5 rounded-full bg-[#0ECB81] animate-pulse"></div>
                     <h3 id="walletModalTitle" class="text-base font-bold text-white font-heading">Spot Wallet Management</h3>
                 </div>
-                <button type="button" id="walletModalClose" class="text-2xl text-[#848E9C] hover:text-white transition-colors">&times;</button>
+                <button type="button" id="walletModalClose" class="text-2xl text-[#848E9C] hover:text-white transition-colors cursor-pointer w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5">&times;</button>
             </div>
 
-            <!-- Modal Nav Tabs -->
-            <div class="flex gap-1.5 p-1 bg-black/40 rounded-xl mb-5 border border-white/5">
-                <button type="button" id="tabDepositBtn" class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-[#0ECB81] text-[#080A0D] transition-all">Deposit</button>
-                <button type="button" id="tabWithdrawBtn" class="flex-1 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all">Withdraw</button>
-                <button type="button" id="tabHistoryBtn" class="flex-1 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all">History</button>
-                <button type="button" id="tabKycBtn" class="flex-1 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all flex items-center justify-center gap-1.5">
+            <!-- Modal Nav Tabs (Fixed / Non-scrolling) -->
+            <div class="flex gap-1.5 p-1 bg-black/40 rounded-xl mb-3 border border-white/5 shrink-0">
+                <button type="button" id="tabDepositBtn" class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-[#0ECB81] text-[#080A0D] transition-all cursor-pointer">Deposit</button>
+                <button type="button" id="tabWithdrawBtn" class="flex-1 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all cursor-pointer">Withdraw</button>
+                <button type="button" id="tabHistoryBtn" class="flex-1 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all cursor-pointer">History</button>
+                <button type="button" id="tabKycBtn" class="flex-1 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer">
                     <span>KYC</span>
                     <span id="kycTabBadge" class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
                 </button>
             </div>
             
-            <!-- 1. Deposit View -->
-            <div id="depositView" class="flex flex-col gap-4 text-xs">
+            <!-- Scrollable Modal Body Container -->
+            <div id="walletModalBody" class="flex-1 overflow-y-auto pr-0.5 custom-scrollbar space-y-4">
+                <!-- 1. Deposit View -->
+                <div id="depositView" class="flex flex-col gap-4 text-xs pb-4">
                 <!-- KYC Deposit Gate Barrier (Shown when unverified or pending) -->
                 <div id="depositKycGate" class="p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 flex flex-col gap-2.5">
                     <div class="flex items-start gap-3">
@@ -612,7 +614,7 @@
                 </div>
 
                 <!-- KYC Application Form (Shown if Unverified or Rejected) -->
-                <form id="kycForm" class="flex flex-col gap-3">
+                <form id="kycForm" novalidate class="flex flex-col gap-3">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         <div>
                             <label class="text-[#848E9C] block mb-1 font-medium">Full Legal Name</label>
@@ -651,7 +653,7 @@
                         <div class="grid grid-cols-2 gap-2.5">
                             <!-- Front Document -->
                             <div class="bg-[#12161E] border border-dashed border-white/15 rounded-xl p-3 text-center flex flex-col items-center justify-center relative hover:border-[#0ECB81]/50 transition-colors cursor-pointer min-h-[85px]">
-                                <input type="file" id="kycFrontInput" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10" required>
+                                <input type="file" id="kycFrontInput" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10">
                                 <div id="kycFrontPreview" class="w-full h-full hidden flex-col items-center">
                                     <img src="" alt="Front" class="max-h-14 max-w-full rounded object-contain mb-1">
                                     <span class="text-[9px] text-[#0ECB81] font-medium">Front Attached ✓</span>
@@ -659,7 +661,7 @@
                                 <div id="kycFrontPrompt" class="flex flex-col items-center gap-0.5 text-[#848E9C]">
                                     <span class="text-sm">📄</span>
                                     <span class="text-[10px] font-medium text-white">Upload Front Side</span>
-                                    <span class="text-[9px] text-white/40">PNG, JPG up to 5MB</span>
+                                    <span class="text-[9px] text-white/40">PNG, JPG up to 35MB</span>
                                 </div>
                             </div>
 
@@ -680,7 +682,7 @@
 
                         <!-- Selfie / Face Photo -->
                         <div class="bg-[#12161E] border border-dashed border-white/15 rounded-xl p-3 text-center flex flex-col items-center justify-center relative hover:border-[#0ECB81]/50 transition-colors cursor-pointer min-h-[85px]">
-                            <input type="file" id="kycSelfieInput" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10" required>
+                            <input type="file" id="kycSelfieInput" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10">
                             <div id="kycSelfiePreview" class="w-full h-full hidden flex-col items-center">
                                 <img src="" alt="Selfie" class="max-h-14 max-w-full rounded object-contain mb-1">
                                 <span class="text-[9px] text-[#0ECB81] font-medium">Selfie Attached ✓</span>
@@ -693,17 +695,21 @@
                         </div>
                     </div>
 
-                    <button type="submit" id="btnSubmitKyc" class="w-full py-3 rounded-xl bg-[#0ECB81] text-[#080A0D] font-bold text-xs hover:bg-[#00F59B] transition-all shadow-[0_0_20px_rgba(14,203,129,0.25)] flex items-center justify-center gap-2 mt-1 cursor-pointer">
-                        <span>Submit for Verification</span>
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                        </svg>
-                    </button>
+                    <!-- Sticky Submit Button on Mobile & Desktop -->
+                    <div class="sticky bottom-0 bg-gradient-to-t from-[#181A20] via-[#181A20] to-transparent pt-3 pb-2 mt-2 z-20">
+                        <button type="submit" id="btnSubmitKyc" class="w-full py-3.5 rounded-xl bg-[#0ECB81] text-[#080A0D] font-bold text-xs hover:bg-[#00F59B] transition-all shadow-[0_0_20px_rgba(14,203,129,0.3)] flex items-center justify-center gap-2 cursor-pointer active:scale-95">
+                            <span>Submit for Verification</span>
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                            </svg>
+                        </button>
+                    </div>
                 </form>
             </div>
 
-        </div>
-    </div>
+            </div> <!-- /walletModalBody -->
+        </div> <!-- /cryptotop-modal-card -->
+    </div> <!-- /walletModalOverlay -->
 
     <!-- Deposit Review & Confirmation Modal -->
     <div id="depositConfirmDialogModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">

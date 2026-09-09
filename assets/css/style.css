@@ -746,6 +746,8 @@ header {
     padding: 16px;
     opacity: 0;
     transition: opacity 0.25s ease;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .cryptotop-modal-overlay--open,
@@ -757,11 +759,46 @@ header {
 .cryptotop-modal-card,
 .capitexa-modal-card {
     background: #181A20;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 20px;
     width: 100%;
-    max-width: 460px;
+    max-width: 520px;
+    max-height: calc(100dvh - 32px);
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+    margin: auto;
 }
+
+@media (max-width: 640px) {
+    .cryptotop-modal-overlay,
+    .capitexa-modal-overlay {
+        padding: 8px;
+        align-items: flex-start;
+    }
+    .cryptotop-modal-card,
+    .capitexa-modal-card {
+        border-radius: 16px;
+        max-height: calc(100dvh - 16px);
+    }
+}
+
+/* Custom Scrollbar for Modal and Panels */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
 

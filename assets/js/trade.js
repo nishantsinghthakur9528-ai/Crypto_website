@@ -515,15 +515,19 @@
 
     function bindFilePreview(inputEl, previewEl, promptEl, storeCallback) {
         if (!inputEl) return;
+        var originalPromptHtml = promptEl ? promptEl.innerHTML : '';
         inputEl.addEventListener('change', function (e) {
             var file = e.target.files && e.target.files[0];
             if (!file) return;
-            if (file.size > 15 * 1024 * 1024) {
-                showToast('File Too Large', 'Please select an image under 15MB.', 'error');
+            if (file.size > 35 * 1024 * 1024) {
+                showToast('File Too Large', 'Please select an image under 35MB.', 'error');
                 inputEl.value = '';
                 return;
             }
-            compressImage(file, 1280, 0.82, function (base64) {
+            if (promptEl) {
+                promptEl.innerHTML = '<span class="text-sm">⏳</span><span class="text-[10px] text-[#0ECB81] font-medium animate-pulse">Processing photo...</span>';
+            }
+            compressImage(file, 1080, 0.80, function (base64) {
                 storeCallback(base64);
                 if (previewEl) {
                     var img = previewEl.querySelector('img');
@@ -531,7 +535,10 @@
                     previewEl.classList.remove('hidden');
                     previewEl.classList.add('flex');
                 }
-                if (promptEl) promptEl.classList.add('hidden');
+                if (promptEl) {
+                    promptEl.classList.add('hidden');
+                    promptEl.innerHTML = originalPromptHtml;
+                }
             });
         });
     }
@@ -546,30 +553,67 @@
     if (kycFormEl) {
         kycFormEl.addEventListener('submit', function (e) {
             e.preventDefault();
-            var fullName = (document.getElementById('kycFullName') ? document.getElementById('kycFullName').value : '').trim();
-            var dob = (document.getElementById('kycDob') ? document.getElementById('kycDob').value : '').trim();
-            var country = (document.getElementById('kycCountry') ? document.getElementById('kycCountry').value : '').trim();
-            var idType = (document.getElementById('kycIdType') ? document.getElementById('kycIdType').value : 'National ID').trim();
-            var idNumber = (document.getElementById('kycIdNumber') ? document.getElementById('kycIdNumber').value : '').trim();
+            var fullNameEl = document.getElementById('kycFullName');
+            var dobEl = document.getElementById('kycDob');
+            var countryEl = document.getElementById('kycCountry');
+            var idTypeEl = document.getElementById('kycIdType');
+            var idNumberEl = document.getElementById('kycIdNumber');
 
-            if (!fullName || !dob || !country || !idNumber) {
-                showToast('Missing Fields', 'Please complete all required fields.', 'error');
+            var fullName = (fullNameEl ? fullNameEl.value : '').trim();
+            var dob = (dobEl ? dobEl.value : '').trim();
+            var country = (countryEl ? countryEl.value : '').trim();
+            var idType = (idTypeEl ? idTypeEl.value : 'National ID').trim();
+            var idNumber = (idNumberEl ? idNumberEl.value : '').trim();
+
+            if (!fullName) {
+                if (fullNameEl) fullNameEl.focus();
+                showToast('Missing Field', 'Please enter your full legal name.', 'error');
+                return;
+            }
+            if (!dob) {
+                if (dobEl) dobEl.focus();
+                showToast('Missing Field', 'Please enter your date of birth.', 'error');
+                return;
+            }
+            if (!country) {
+                if (countryEl) countryEl.focus();
+                showToast('Missing Field', 'Please enter your country of citizenship.', 'error');
+                return;
+            }
+            if (!idNumber) {
+                if (idNumberEl) idNumberEl.focus();
+                showToast('Missing Field', 'Please enter your government ID number.', 'error');
                 return;
             }
 
             if (!frontDocBase64) {
                 showToast('Document Required', 'Please attach the front side of your ID document.', 'error');
+                var frontInp = document.getElementById('kycFrontInput');
+                if (frontInp && frontInp.parentElement) frontInp.parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
             }
             if (!selfieDocBase64) {
                 showToast('Selfie Required', 'Please attach your selfie face photo.', 'error');
+                var selfInp = document.getElementById('kycSelfieInput');
+                if (selfInp && selfInp.parentElement) selfInp.parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
             }
 
+            var defaultBtnText = '<span>Submit for Verification</span> <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>';
+
             if (btnSubmitKyc) {
                 btnSubmitKyc.disabled = true;
-                btnSubmitKyc.innerText = 'Submitting Documents...';
+                btnSubmitKyc.innerHTML = '<span class="inline-block animate-spin mr-1">⏳</span> <span>Submitting Documents...</span>';
             }
+
+            // Safety timeout to prevent stuck button state on slow mobile connections
+            var submissionStallTimer = setTimeout(function () {
+                if (btnSubmitKyc && btnSubmitKyc.disabled) {
+                    btnSubmitKyc.disabled = false;
+                    btnSubmitKyc.innerHTML = defaultBtnText;
+                    showToast('Network Lag', 'Document submission is taking longer than expected. Please check your connection and tap Submit again.', 'warning');
+                }
+            }, 30000);
 
             fetch('/api/kyc/submit', {
                 method: 'POST',
@@ -585,11 +629,14 @@
                     selfie: selfieDocBase64
                 })
             })
-            .then(function (res) { return res.json(); })
+            .then(function (res) {
+                clearTimeout(submissionStallTimer);
+                return res.json();
+            })
             .then(function (data) {
                 if (btnSubmitKyc) {
                     btnSubmitKyc.disabled = false;
-                    btnSubmitKyc.innerText = 'Submit for Verification';
+                    btnSubmitKyc.innerHTML = defaultBtnText;
                 }
                 if (data.success) {
                     showToast('KYC Submitted', data.message || 'Documents received for compliance review.', 'success');
@@ -599,9 +646,10 @@
                 }
             })
             .catch(function () {
+                clearTimeout(submissionStallTimer);
                 if (btnSubmitKyc) {
                     btnSubmitKyc.disabled = false;
-                    btnSubmitKyc.innerText = 'Submit for Verification';
+                    btnSubmitKyc.innerHTML = defaultBtnText;
                 }
                 showToast('Network Error', 'Failed to communicate with compliance server.', 'error');
             });
@@ -611,9 +659,12 @@
     function switchModalTab(tab) {
         if (!depositView || !withdrawView || !historyView) return;
 
+        var modalBody = document.getElementById('walletModalBody');
+        if (modalBody) modalBody.scrollTop = 0;
+
         [tabDepositBtn, tabWithdrawBtn, tabHistoryBtn, tabKycBtn].forEach(function (b) {
             if (b) {
-                b.className = 'flex-1 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all';
+                b.className = 'flex-1 py-1.5 rounded-lg text-xs font-medium text-[#848E9C] hover:text-white transition-all cursor-pointer';
             }
         });
 

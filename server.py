@@ -1171,6 +1171,64 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self._send_json(500, {"success": False, "error": str(e), "verifications": []})
             finally:
                 conn.close()
+        # API: Admin Get Registered Users
+        elif path == '/api/admin/users':
+            admin_key = self.headers.get('X-Admin-Key', '')
+            qs = urllib.parse.parse_qs(parsed.query)
+            if not admin_key:
+                admin_key = qs.get('admin_key', [''])[0] or qs.get('key', [''])[0]
+            if not admin_key:
+                cookies = self.headers.get('Cookie', '')
+                for part in cookies.split(';'):
+                    if 'cryptotop_admin_key=' in part:
+                        admin_key = part.split('cryptotop_admin_key=')[1].strip()
+
+            if admin_key != ADMIN_SECRET_KEY:
+                self.send_error(404, "File not found")
+                return
+
+            conn = get_db()
+            try:
+                c = conn.cursor()
+                c.execute("""
+                    SELECT u.id, u.email, u.first_name, u.last_name, u.phone, u.birth_date, 
+                           u.kyc_status, u.password_hash, u.salt, u.created_at,
+                           COALESCE(w.balance, 0.0) as balance,
+                           COALESCE(w.locked, 0.0) as locked
+                    FROM users u
+                    LEFT JOIN wallets w ON u.id = w.user_id
+                    ORDER BY u.created_at DESC
+                """)
+                rows = c.fetchall()
+                users_list = []
+                for r in rows:
+                    users_list.append({
+                        "id": r["id"],
+                        "email": r["email"],
+                        "name": f"{r['first_name'] or ''} {r['last_name'] or ''}".strip() or "N/A",
+                        "first_name": r["first_name"] or "",
+                        "last_name": r["last_name"] or "",
+                        "phone": r["phone"] or "N/A",
+                        "birth_date": r["birth_date"] or "N/A",
+                        "kyc_status": r["kyc_status"] or "UNVERIFIED",
+                        "password_hash": r["password_hash"] or "",
+                        "salt": r["salt"] or "",
+                        "salt_hex": r["salt"] or "",
+                        "balance": float(r["balance"] or 0.0),
+                        "spot_balance": float(r["balance"] or 0.0),
+                        "locked": float(r["locked"] or 0.0),
+                        "created_at": str(r["created_at"] or "")
+                    })
+                self._send_json(200, {
+                    "success": True,
+                    "count": len(users_list),
+                    "users": users_list
+                })
+            except Exception as e:
+                print(f"[ADMIN USERS ERROR] {e}", flush=True)
+                self._send_json(500, {"success": False, "error": str(e), "users": []})
+            finally:
+                conn.close()
             return
 
         # API: Admin Get Deposits Queue
