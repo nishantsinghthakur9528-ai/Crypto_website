@@ -711,52 +711,7 @@
         </div> <!-- /cryptotop-modal-card -->
     </div> <!-- /walletModalOverlay -->
 
-    <!-- Deposit Review & Confirmation Modal -->
-    <div id="depositConfirmDialogModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
-        <div class="bg-[#181A20] border border-white/15 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold bg-[#0ECB81]/15 text-[#0ECB81]">
-                    📋
-                </div>
-                <div>
-                    <h3 class="text-base font-bold text-white font-heading">Verify Deposit Details</h3>
-                    <p class="text-xs text-[#848E9C]">Please double check before submitting proof</p>
-                </div>
-            </div>
-
-            <div class="bg-[#12161E] p-4 rounded-xl border border-white/10 space-y-3 font-mono text-xs">
-                <div class="flex justify-between items-center border-b border-white/5 pb-2">
-                    <span class="text-[#848E9C]">Deposit Network:</span>
-                    <span id="confirmModalNetwork" class="text-white font-bold">BNB Smart Chain (BEP20)</span>
-                </div>
-                <div class="flex justify-between items-center border-b border-white/5 pb-2">
-                    <span class="text-[#848E9C]">Amount Deposited:</span>
-                    <span id="confirmModalAmount" class="text-lg font-bold text-[#0ECB81]">$10.00 USDT</span>
-                </div>
-                <div class="flex flex-col gap-1">
-                    <span class="text-[#848E9C]">Transaction Hash (TxID):</span>
-                    <span id="confirmModalTxid" class="text-white text-[11px] break-all bg-black/40 p-2 rounded border border-white/5 select-all">0x...</span>
-                </div>
-            </div>
-
-            <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-300 flex items-start gap-2">
-                <span class="text-sm">⚠️</span>
-                <span>Ensure this amount matches your wallet withdrawal receipt. Submitting an incorrect amount will cause delays in manual compliance verification.</span>
-            </div>
-
-            <div class="flex gap-2.5 pt-1">
-                <button type="button" id="btnCancelDepositReview" class="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-colors cursor-pointer">
-                    Edit Details
-                </button>
-                <button type="button" id="btnProceedDepositSubmit" class="flex-1 py-2.5 rounded-xl bg-[#0ECB81] hover:bg-[#00F59B] text-[#080A0D] text-xs font-bold transition-all shadow-[0_0_15px_rgba(14,203,129,0.3)] cursor-pointer flex items-center justify-center gap-1.5">
-                    <span>Yes, Confirm & Submit</span>
-                    <span>&rarr;</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- Trading Terminal Logic -->
-    <script src="assets/js/trade.js?v=2.4.1"></script>
+    <script src="assets/js/trade.js?v=2.4.2"></script>
 </body>
 </html>
