@@ -1487,14 +1487,6 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             chosen_address = get_random_deposit_address(network)
             
             dep_id = f"DEP-{uuid.uuid4().hex[:8].upper()}"
-            conn = get_db()
-            c = conn.cursor()
-            c.execute("""
-                INSERT INTO deposits (id, user_id, currency, network, deposit_address, amount, txid, status, created_at)
-                VALUES (?, ?, ?, ?, ?, 0.0, NULL, 'PENDING', datetime('now'))
-            """, (dep_id, user_id, currency, network, chosen_address))
-            conn.commit()
-            conn.close()
 
             self._send_json(200, {
                 "success": True,
@@ -1545,8 +1537,12 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self._send_json(400, {"success": False, "error": "Deposit amount must be greater than 0"})
                 return
 
-            if amount < min_dep:
-                self._send_json(400, {"success": False, "error": f"Minimum deposit is {min_dep:.2f} USDT."})
+            if amount < 20.0 or amount < min_dep:
+                effective_min = max(20.0, min_dep)
+                self._send_json(400, {
+                    "success": False, 
+                    "error": f"Minimum deposit amount is {effective_min:.2f} USDT. Deposits below {effective_min:.2f} USDT cannot be accepted."
+                })
                 return
 
             txid = (payload.get("txid") or "").strip()

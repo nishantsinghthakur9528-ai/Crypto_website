@@ -901,12 +901,44 @@
         });
     });
 
-    // Quick Preset Amount Pills
+    // Quick Preset Amount Pills & Real-Time Validation
+    var depositAmountInput = document.getElementById('depositAmountInput');
+    var depositAmountError = document.getElementById('depositAmountError');
+
+    function validateDepositAmount() {
+        if (!depositAmountInput) return true;
+        var val = depositAmountInput.value.trim();
+        if (!val) {
+            if (depositAmountError) depositAmountError.classList.add('hidden');
+            depositAmountInput.classList.remove('border-[#F6465D]');
+            return false;
+        }
+        var num = parseFloat(val);
+        if (isNaN(num) || num < 20) {
+            if (depositAmountError) depositAmountError.classList.remove('hidden');
+            depositAmountInput.classList.add('border-[#F6465D]');
+            depositAmountInput.classList.remove('focus:border-[#0ECB81]');
+            return false;
+        } else {
+            if (depositAmountError) depositAmountError.classList.add('hidden');
+            depositAmountInput.classList.remove('border-[#F6465D]');
+            depositAmountInput.classList.add('focus:border-[#0ECB81]');
+            return true;
+        }
+    }
+
+    if (depositAmountInput) {
+        depositAmountInput.addEventListener('input', validateDepositAmount);
+        depositAmountInput.addEventListener('change', validateDepositAmount);
+    }
+
     var quickDepPills = document.querySelectorAll('.quick-dep-amt');
     quickDepPills.forEach(function (p) {
         p.addEventListener('click', function () {
-            var amtInput = document.getElementById('depositAmountInput');
-            if (amtInput) amtInput.value = p.dataset.amt;
+            if (depositAmountInput) {
+                depositAmountInput.value = p.dataset.amt;
+                validateDepositAmount();
+            }
         });
     });
 
@@ -947,13 +979,15 @@
             var txid = depositTxidInput ? depositTxidInput.value.trim() : '';
 
             if (isNaN(amount) || amount <= 0) {
-                showToast('Invalid Amount', 'Please enter or select a deposit amount (minimum $20 USDT).', 'error');
+                showToast('Invalid Amount', 'Please enter a valid deposit amount (minimum 20.00 USDT).', 'error');
+                validateDepositAmount();
                 if (amtInput) amtInput.focus();
                 return;
             }
 
             if (amount < 20) {
-                showToast('Minimum Amount', 'Minimum deposit is $20.00 USDT.', 'error');
+                showToast('Minimum Deposit 20 USDT', 'The minimum deposit amount is 20.00 USDT. Deposits below 20.00 USDT cannot be accepted.', 'error');
+                validateDepositAmount();
                 if (amtInput) amtInput.focus();
                 return;
             }
