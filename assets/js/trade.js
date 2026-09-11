@@ -21,8 +21,8 @@
     };
 
     var networkDepositInfo = {
-        "USDT-BEP20": { min: "10.00 USDT", fee: "0.00% ($0.00)" },
-        "USDT-TRC20": { min: "10.00 USDT", fee: "0.00% ($0.00)" }
+        "USDT-BEP20": { min: "20.00 USDT", fee: "0.00% ($0.00)" },
+        "USDT-TRC20": { min: "20.00 USDT", fee: "0.00% ($0.00)" }
     };
     var selectedDepositNetwork = "USDT-TRC20";
 
@@ -52,7 +52,7 @@
     var activeSide = 'buy';
     var liveWalletBalance = 0.00;
     var liveLockedBalance = 0.00;
-    var activeHistorySubTab = 'deposits';
+    var activeHistorySubTab = 'withdrawals';
 
     // =========================================================================
     // 1. Toast Notification Helper
@@ -242,26 +242,21 @@
     var withdrawalTableWrap = document.getElementById('withdrawalTableWrap');
 
     function switchHistorySubTab(sub) {
-        activeHistorySubTab = sub;
+        activeHistorySubTab = sub || 'withdrawals';
         if (!depositTableWrap || !withdrawalTableWrap) return;
 
+        var activeBtnClass = 'flex-1 py-1.5 rounded-md text-[11px] font-bold bg-[#0ECB81] text-[#080A0D] shadow-[0_0_10px_rgba(14,203,129,0.2)] transition-all cursor-pointer';
+        var inactiveBtnClass = 'flex-1 py-1.5 rounded-md text-[11px] font-medium text-[#848E9C] hover:text-white bg-transparent transition-all cursor-pointer';
+
         if (sub === 'deposits') {
-            if (subTabDeposits) {
-                subTabDeposits.className = 'flex-1 py-1 rounded-md text-[11px] font-bold bg-[#0ECB81]/15 text-[#0ECB81] border border-[#0ECB81]/30 transition-all';
-            }
-            if (subTabWithdrawals) {
-                subTabWithdrawals.className = 'flex-1 py-1 rounded-md text-[11px] font-medium text-[#848E9C] hover:text-white transition-all border border-transparent';
-            }
+            if (subTabDeposits) subTabDeposits.className = activeBtnClass;
+            if (subTabWithdrawals) subTabWithdrawals.className = inactiveBtnClass;
             depositTableWrap.style.display = 'block';
             withdrawalTableWrap.style.display = 'none';
             fetchDepositHistory();
-        } else if (sub === 'withdrawals') {
-            if (subTabWithdrawals) {
-                subTabWithdrawals.className = 'flex-1 py-1 rounded-md text-[11px] font-bold bg-[#0ECB81]/15 text-[#0ECB81] border border-[#0ECB81]/30 transition-all';
-            }
-            if (subTabDeposits) {
-                subTabDeposits.className = 'flex-1 py-1 rounded-md text-[11px] font-medium text-[#848E9C] hover:text-white transition-all border border-transparent';
-            }
+        } else {
+            if (subTabWithdrawals) subTabWithdrawals.className = activeBtnClass;
+            if (subTabDeposits) subTabDeposits.className = inactiveBtnClass;
             withdrawalTableWrap.style.display = 'block';
             depositTableWrap.style.display = 'none';
             fetchWithdrawHistory();
@@ -687,10 +682,11 @@
             if (withdrawView) withdrawView.style.display = 'flex';
             var withAvail = document.getElementById('withdrawAvailableBal');
             if (withAvail) withAvail.innerText = '$' + liveWalletBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            activeHistorySubTab = 'withdrawals';
         } else if (tab === 'history') {
             if (tabHistoryBtn) tabHistoryBtn.className = 'flex-1 py-1.5 rounded-lg text-xs font-bold bg-[#0ECB81] text-[#080A0D] transition-all';
             if (historyView) historyView.style.display = 'flex';
-            switchHistorySubTab(activeHistorySubTab || 'deposits');
+            switchHistorySubTab(activeHistorySubTab || 'withdrawals');
         } else if (tab === 'kyc') {
             if (tabKycBtn) tabKycBtn.className = 'flex-1 py-1.5 rounded-lg text-xs font-bold bg-[#0ECB81] text-[#080A0D] transition-all';
             if (kycView) kycView.style.display = 'flex';
@@ -753,8 +749,8 @@
 
     // Deposit Network State & Address Assignment
     var networkDepositInfo = {
-        'USDT-BEP20': { min: '10.00 USDT', confirmations: 15, fee: '0.00 USDT' },
-        'USDT-TRC20': { min: '10.00 USDT', confirmations: 1, fee: '0.00 USDT' }
+        'USDT-BEP20': { min: '20.00 USDT', confirmations: 15, fee: '0.00 USDT' },
+        'USDT-TRC20': { min: '20.00 USDT', confirmations: 1, fee: '0.00 USDT' }
     };
 
     var selectedDepositNetwork = 'USDT-BEP20';
@@ -951,13 +947,13 @@
             var txid = depositTxidInput ? depositTxidInput.value.trim() : '';
 
             if (isNaN(amount) || amount <= 0) {
-                showToast('Invalid Amount', 'Please enter or select a deposit amount (minimum $10 USDT).', 'error');
+                showToast('Invalid Amount', 'Please enter or select a deposit amount (minimum $20 USDT).', 'error');
                 if (amtInput) amtInput.focus();
                 return;
             }
 
-            if (amount < 10) {
-                showToast('Minimum Amount', 'Minimum deposit is $10.00 USDT.', 'error');
+            if (amount < 20) {
+                showToast('Minimum Amount', 'Minimum deposit is $20.00 USDT.', 'error');
                 if (amtInput) amtInput.focus();
                 return;
             }
@@ -1123,6 +1119,7 @@
 
             if (isNaN(amount) || amount <= 0) {
                 showToast('Invalid Amount', 'Please enter a valid withdrawal amount.', 'error');
+                if (amtInput) amtInput.focus();
                 return;
             }
             if (!dest) {
@@ -1153,11 +1150,13 @@
                         liveLockedBalance = data.locked;
                     }
                     updateWalletDisplay();
-                    closeWalletModal();
-                    showToast('Withdrawal Successful', 'Withdrawal of $' + amount.toFixed(2) + ' USDT processed successfully.', 'success');
+                    activeHistorySubTab = 'withdrawals';
                     if (destInput) destInput.value = '';
                     fetchWalletBalance();
                     fetchWithdrawHistory();
+                    showToast('Withdrawal Processed', 'Withdrawal of $' + amount.toFixed(2) + ' USDT processed successfully.', 'success');
+                    switchModalTab('history');
+                    switchHistorySubTab('withdrawals');
                 } else {
                     showToast('Withdrawal Failed', data.error || 'Unable to process withdrawal.', 'error');
                 }

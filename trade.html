@@ -427,11 +427,11 @@
                     <div class="space-y-3">
                         <div>
                             <label class="text-[#848E9C] block mb-1 font-medium">1. Amount Sent (USDT)</label>
-                            <input type="number" id="depositAmountInput" placeholder="Enter exact amount sent (e.g. 10.00)" min="10" step="any" class="w-full bg-[#12161E] border border-white/10 rounded-xl p-3 text-white font-mono text-base font-bold outline-none focus:border-[#0ECB81] transition-colors">
+                            <input type="number" id="depositAmountInput" placeholder="Enter exact amount sent (e.g. 20.00)" min="20" step="any" class="w-full bg-[#12161E] border border-white/10 rounded-xl p-3 text-white font-mono text-base font-bold outline-none focus:border-[#0ECB81] transition-colors">
                             
-                            <!-- Quick Amount Preset Pills (Includes small amounts $10, $25, $50, $100) -->
+                            <!-- Quick Amount Preset Pills (Includes small amounts $20, $25, $50, $100) -->
                             <div class="grid grid-cols-6 gap-1.5 mt-2">
-                                <button type="button" class="quick-dep-amt py-1.5 rounded-lg bg-white/5 hover:bg-[#0ECB81]/15 hover:border-[#0ECB81]/40 border border-white/10 text-[#848E9C] hover:text-[#0ECB81] text-[11px] font-mono font-bold transition-all cursor-pointer" data-amt="10">$10</button>
+                                <button type="button" class="quick-dep-amt py-1.5 rounded-lg bg-white/5 hover:bg-[#0ECB81]/15 hover:border-[#0ECB81]/40 border border-white/10 text-[#848E9C] hover:text-[#0ECB81] text-[11px] font-mono font-bold transition-all cursor-pointer" data-amt="20">$20</button>
                                 <button type="button" class="quick-dep-amt py-1.5 rounded-lg bg-white/5 hover:bg-[#0ECB81]/15 hover:border-[#0ECB81]/40 border border-white/10 text-[#848E9C] hover:text-[#0ECB81] text-[11px] font-mono font-bold transition-all cursor-pointer" data-amt="25">$25</button>
                                 <button type="button" class="quick-dep-amt py-1.5 rounded-lg bg-white/5 hover:bg-[#0ECB81]/15 hover:border-[#0ECB81]/40 border border-white/10 text-[#848E9C] hover:text-[#0ECB81] text-[11px] font-mono font-bold transition-all cursor-pointer" data-amt="50">$50</button>
                                 <button type="button" class="quick-dep-amt py-1.5 rounded-lg bg-white/5 hover:bg-[#0ECB81]/15 hover:border-[#0ECB81]/40 border border-white/10 text-[#848E9C] hover:text-[#0ECB81] text-[11px] font-mono font-bold transition-all cursor-pointer" data-amt="100">$100</button>
@@ -451,7 +451,7 @@
                     </div>
 
                     <div class="flex justify-between text-[11px] text-[#848E9C] px-1">
-                        <span>Minimum Deposit: <strong class="text-white" id="minDepDisplay">10.00 USDT</strong></span>
+                        <span>Minimum Deposit: <strong class="text-white" id="minDepDisplay">20.00 USDT</strong></span>
                         <span>Deposit Fee: <strong class="text-[#0ECB81]">0.00% ($0.00)</strong></span>
                     </div>
 
@@ -507,7 +507,7 @@
                             <label class="text-[#848E9C] block font-medium">Withdraw Amount (USDT)</label>
                             <span class="text-[11px] text-[#848E9C]">Available: <strong id="withdrawAvailableBal" class="text-white font-mono">$0.00</strong></span>
                         </div>
-                        <input type="number" id="withdrawAmountInput" value="500" min="10" step="any" class="w-full bg-[#12161E] border border-white/10 rounded-xl p-3 text-white font-mono text-base font-bold outline-none focus:border-[#0ECB81] transition-colors">
+                        <input type="number" id="withdrawAmountInput" value="500" min="any" step="any" class="w-full bg-[#12161E] border border-white/10 rounded-xl p-3 text-white font-mono text-base font-bold outline-none focus:border-[#0ECB81] transition-colors">
                         
                         <!-- Quick Amount Preset Pills -->
                         <div class="grid grid-cols-4 gap-1.5 mt-2">
@@ -534,31 +534,14 @@
 
             <!-- 3. Transaction History View -->
             <div id="historyView" class="flex flex-col gap-3 text-xs" style="display: none;">
-                <!-- Subtabs -->
+                <!-- Subtabs (Withdrawals default) -->
                 <div class="flex gap-2 p-1 bg-white/[0.04] rounded-lg border border-white/5">
-                    <button type="button" id="subTabDeposits" class="flex-1 py-1 rounded-md text-[11px] font-bold bg-[#0ECB81]/15 text-[#0ECB81] border border-[#0ECB81]/30 transition-all">Deposits</button>
-                    <button type="button" id="subTabWithdrawals" class="flex-1 py-1 rounded-md text-[11px] font-medium text-[#848E9C] hover:text-white transition-all">Withdrawals</button>
+                    <button type="button" id="subTabWithdrawals" class="flex-1 py-1 rounded-md text-[11px] font-bold bg-[#0ECB81] text-[#080A0D] shadow-[0_0_10px_rgba(14,203,129,0.2)] transition-all cursor-pointer">Withdrawals</button>
+                    <button type="button" id="subTabDeposits" class="flex-1 py-1 rounded-md text-[11px] font-medium text-[#848E9C] hover:text-white bg-transparent transition-all cursor-pointer">Deposits</button>
                 </div>
 
-                <!-- Deposits Table Wrap -->
-                <div id="depositTableWrap" class="max-h-[250px] overflow-y-auto rounded-xl border border-white/10">
-                    <table class="w-full text-left font-mono text-[11px]">
-                        <thead>
-                            <tr class="bg-black/40 border-b border-white/10 text-[#848E9C] uppercase text-[10px]">
-                                <th class="py-2.5 px-3">Date</th>
-                                <th class="py-2.5 px-3">Net</th>
-                                <th class="py-2.5 px-3">Amount</th>
-                                <th class="py-2.5 px-3 text-right">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="depositHistoryTableBody" class="divide-y divide-white/5">
-                            <tr><td colspan="4" class="py-6 text-center text-[#848E9C]">Loading deposits...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Withdrawals Table Wrap -->
-                <div id="withdrawalTableWrap" class="max-h-[250px] overflow-y-auto rounded-xl border border-white/10" style="display: none;">
+                <!-- Withdrawals Table Wrap (Primary) -->
+                <div id="withdrawalTableWrap" class="max-h-[250px] overflow-y-auto rounded-xl border border-white/10">
                     <table class="w-full text-left font-mono text-[11px]">
                         <thead>
                             <tr class="bg-black/40 border-b border-white/10 text-[#848E9C] uppercase text-[10px]">
@@ -570,6 +553,23 @@
                         </thead>
                         <tbody id="withdrawHistoryTableBody" class="divide-y divide-white/5">
                             <tr><td colspan="4" class="py-6 text-center text-[#848E9C]">Loading withdrawals...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Deposits Table Wrap -->
+                <div id="depositTableWrap" class="max-h-[250px] overflow-y-auto rounded-xl border border-white/10" style="display: none;">
+                    <table class="w-full text-left font-mono text-[11px]">
+                        <thead>
+                            <tr class="bg-black/40 border-b border-white/10 text-[#848E9C] uppercase text-[10px]">
+                                <th class="py-2.5 px-3">Date</th>
+                                <th class="py-2.5 px-3">Net</th>
+                                <th class="py-2.5 px-3">Amount</th>
+                                <th class="py-2.5 px-3 text-right">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="depositHistoryTableBody" class="divide-y divide-white/5">
+                            <tr><td colspan="4" class="py-6 text-center text-[#848E9C]">Loading deposits...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -712,6 +712,6 @@
     </div> <!-- /walletModalOverlay -->
 
     <!-- Trading Terminal Logic -->
-    <script src="assets/js/trade.js?v=2.4.2"></script>
+    <script src="assets/js/trade.js?v=2.4.3"></script>
 </body>
 </html>
